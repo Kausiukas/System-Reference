@@ -1,0 +1,27 @@
+name: CI Performance & Resource Checks
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  performance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+      - name: Run CI Performance/Resource Checks
+        env:
+          CI_MAX_LATENCY: '1.0'
+          CI_MIN_THROUGHPUT: '10'
+          CI_MAX_MEMORY_MB: '1024'
+        run: |
+          python ci_performance_check.py 
