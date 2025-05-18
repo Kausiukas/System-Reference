@@ -1,3 +1,18 @@
+# Multi-Agent AI Assistant System (Current State)
+
+This project is a robust, extensible multi-agent AI assistant platform with:
+- **Multi-agent support:** Switch between CodexAgent (chain-of-thought, local/cloud hybrid) and LLMAssistant (classic logic) from the UI.
+- **Checklist management:** Interactive checklist tab with support for multiple checklists, progress tracking, and evaluation dashboard.
+- **Metrics dashboard:** Real-time dashboard with per-metric status indicators, data freshness checks, and error handling for all logging sources.
+- **Logging infrastructure:** Modular logging for system, app, LLM, profiling, memory, and aggregated logs. Includes documentation and troubleshooting guides.
+- **Automated health checks:** Integrated health checks in the app and a standalone/background watchdog script to monitor and auto-restart logging processes.
+- **Local knowledge base:** Sidebar UI for semantic search, file context, and reindexing of project files.
+- **Extensive documentation:** Up-to-date docs for logging, metrics, health checks, and maintenance.
+
+The system is designed for reliability, maintainability, and easy monitoring, with a focus on hybrid local/cloud LLM processing, robust error handling, and user-friendly dashboards.
+
+---
+
 # Memory-Optimized Vector Database System
 
 A comprehensive system for memory optimization and performance monitoring in AI-powered vector databases.
@@ -435,4 +450,12 @@ print(results)
   - Add time: ~10.5s
   - Search time: ~0.012s/query
 
-See `memory_optimization_checklist.md` for more details and recommendations. 
+See `memory_optimization_checklist.md` for more details and recommendations.
+
+## Security: API Key Handling
+
+- API keys are never hardcoded in the codebase.
+- All keys are loaded from environment variables or a .env file (which is in .gitignore).
+- The application will never print or log the full API key; only a redacted version is shown for debugging (see `codex_config.py: redact_key`).
+- If you see your API key in logs or errors, rotate it immediately.
+- For production, consider using a secrets manager (e.g., AWS Secrets Manager, HashiCorp Vault). 
