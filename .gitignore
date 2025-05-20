@@ -20,37 +20,84 @@ wheels/
 .installed.cfg
 *.egg
 
-# Logs and databases
-*.log
-*.sqlite
-*.db
-logs/
-profiles/
-test_data/
-test_vectorstore/
-test_full_db/
-
-# Test cache
-.pytest_cache/
-.coverage
-htmlcov/
+# Virtual Environment
+venv/
+env/
+ENV/
+.env
 
 # IDE
 .idea/
 .vscode/
 *.swp
 *.swo
-
-# OS
 .DS_Store
-Thumbs.db
 
-# Project specific
+# Application specific
+data/
+vectorstore/
+*.log
+*.db
+*.sqlite3
+
+# HuggingFace cache
+.cache/
+transformers/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Testing
+.coverage
+htmlcov/
+.pytest_cache/
+.tox/
+
+# Distribution
+dist/
+build/
+
+# Logs and databases
+*.log
+*.sqlite
+*.db
+app.log
+logging_watchdog.log
+gc_stats.log
+metrics_history.json
+.file_metadata.json
+
+# Local data
+local_cache/
+temp/
+.chroma/
+.chromadb/
+
+# Test data
+test_data/
+generated_tests/
+
+# Large files
+*.xyz
 *.csv
 *.json
+!package.json
+!requirements.txt
+
+# Documentation
+*.md
+!README.md
+!docs/*.md
+
+# System files
+Thumbs.db
+
+# Environment variables
+.env.*
+
+# Project specific
 *.png
 *.txt
-!README.md
 !MAINTENANCE_GUIDE.md
 !TROUBLESHOOTING.md
 !PROFILING_GUIDE.md

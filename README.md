@@ -1,3 +1,18 @@
+# Multi-Agent AI Assistant System (Current State)
+
+This project is a robust, extensible multi-agent AI assistant platform with:
+- **Multi-agent support:** Switch between CodexAgent (chain-of-thought, local/cloud hybrid) and LLMAssistant (classic logic) from the UI.
+- **Checklist management:** Interactive checklist tab with support for multiple checklists, progress tracking, and evaluation dashboard.
+- **Metrics dashboard:** Real-time dashboard with per-metric status indicators, data freshness checks, and error handling for all logging sources.
+- **Logging infrastructure:** Modular logging for system, app, LLM, profiling, memory, and aggregated logs. Includes documentation and troubleshooting guides.
+- **Automated health checks:** Integrated health checks in the app and a standalone/background watchdog script to monitor and auto-restart logging processes.
+- **Local knowledge base:** Sidebar UI for semantic search, file context, and reindexing of project files.
+- **Extensive documentation:** Up-to-date docs for logging, metrics, health checks, and maintenance.
+
+The system is designed for reliability, maintainability, and easy monitoring, with a focus on hybrid local/cloud LLM processing, robust error handling, and user-friendly dashboards.
+
+---
+
 # Memory-Optimized Vector Database System
 
 A comprehensive system for memory optimization and performance monitoring in AI-powered vector databases.
@@ -94,345 +109,381 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 # AI Assistant GUI
 
-## Overview
-This project is a Streamlit-based AI Assistant GUI that uses a vector database (ChromaDB, with Annoy as fallback) and HuggingFace embeddings for document search and retrieval. It supports RAG (Retrieval-Augmented Generation) workflows and integrates with OpenAI for LLM-based responses.
+A powerful, multi-agent AI assistant platform with local knowledge base integration, interactive checklists, and real-time metrics monitoring.
 
----
+## Features
 
-## Setup & Installation
+### Core Capabilities
+- **Multi-Agent Support**: Switch between different AI agents:
+  - CodexAgent: Chain-of-thought reasoning with local/cloud hybrid processing
+  - LLMAssistant: Classic logic-based assistance
+- **Local Knowledge Base**: 
+  - Semantic search across project files
+  - Automatic file indexing and reindexing
+  - Context-aware document retrieval
+  - Support for multiple file types (Python, Markdown, Text, JSON)
+- **Interactive Checklists**:
+  - Multiple checklist management
+  - Progress tracking
+  - Evaluation dashboard
+  - Task prioritization
 
-1. **Clone the repository**
-2. **Install dependencies:**
-   ```sh
-   pip install -r requirements.txt
-   pip install python-dotenv
-   ```
-3. **Create a `.env` file** in the project root with the following content:
-   ```env
-   OPENAI_API_KEY=your-openai-key-here
-   VECTOR_DB_PATH=D:/DATA/vectorstore
-   LOCAL_VECTOR_DB_PATH=D:/GUI/vectorstore
-   DATA_DIR=data
-   HISTORY_FILE=data/chat_history.json
-   ```
-   Adjust paths as needed for your environment.
-
-4. **(Optional) Clear HuggingFace cache if you encounter model loading errors:**
-   - Delete the folder: `C:/Users/<YourUser>/.cache/huggingface`
-   - Or run: `rmdir /s /q %USERPROFILE%\.cache\huggingface`
-
-5. **Run the app:**
-   ```sh
-   streamlit run app.py
-   ```
-
----
-
-## Environment Variables
-- `OPENAI_API_KEY`: Your OpenAI API key (required for LLM features)
-- `VECTOR_DB_PATH`: Path to the main vectorstore (ChromaDB persistent storage)
-- `LOCAL_VECTOR_DB_PATH`: Path to the local vectorstore (for local testing)
-- `DATA_DIR`: Directory for app data (default: `data`)
-- `HISTORY_FILE`: Path to chat history file (default: `data/chat_history.json`)
-
----
-
-## Current Issues & Troubleshooting
-
-### 1. **High Memory Consumption / Slow App Startup**
-**Symptoms:**
-- App takes a long time to load
-- Memory usage spikes (can reach 10GB+)
-
-**Potential Causes:**
-- Some vector database backends (or wrappers) may load all documents/embeddings into memory when calling `.get()` or similar methods.
-- Sidebar/status code that tries to display document count or dimension by loading all documents instead of using a lightweight stats method.
-- Large or corrupted model cache in HuggingFace.
-- Multiple clients accessing the same local ChromaDB DB concurrently (can cause locking and memory issues).
-
-**What Has Been Done:**
-- The sidebar now uses `get_stats()` for document count and dimension, which is lightweight and does not load all documents.
-- Health checks only fetch a single document or use `.count()`/`.info()` if available.
-- Embeddings are loaded with `device='cpu'` and only supported arguments.
-
-**Ideas for Further Fixes:**
-- Ensure all code (including any wrappers or custom scripts) uses only lightweight methods for stats and health checks.
-- Avoid calling `.get()` or any method that loads all documents unless absolutely necessary.
-- Profile memory usage with tools like `psutil` or Streamlit's built-in profiler to identify bottlenecks.
-- If using custom vector DB backends, implement and use a `get_stats()` or `count()` method.
-- Regularly clear the HuggingFace cache if you encounter model loading issues.
-
-### 2. **Model Loading Errors (PyTorch/Meta Tensor)**
-- If you see errors like `NotImplementedError: Cannot copy out of meta tensor; no data!`, clear the HuggingFace cache and ensure you are using compatible versions of `torch` and `sentence-transformers`.
-- Try switching to a different model (e.g., `all-MiniLM-L6-v2`) if issues persist.
-
-### 3. **ChromaDB Local DB Locking**
-- If you see errors about the storage folder being locked, ensure only one instance of the app or client is accessing the local ChromaDB DB at a time.
-
----
-
-## Logging
-- The app writes logs to `app.log` in the project root. Check this file for troubleshooting information.
-
----
-
-## Contributing & Extending
-- Add new environment variables to `.env` as needed.
-- Use the `get_stats()` pattern for any new vector DB integrations to keep memory usage low.
-- PRs and issues welcome!
-
-## System Architecture
-
-### Module Structure
-
-```
-D:/DATA/                    # Main data processing module
-├── uploads/               # Raw document storage
-├── vectorstore/          # Main vector database storage (ChromaDB format)
-└── utils/                # Core database utilities
-
-D:/GUI/                    # GUI application module
-├── vectorstore/          # Local vector database cache (ChromaDB format)
-├── test_data/            # Test documents
-├── data/                 # Application data
-└── [application files]   # GUI implementation files
-```
-
-### Vector Database Interaction
-
-The system uses two vector database locations:
-
-1. **Main Vectorstore** (`D:/DATA/vectorstore`)
-   - Primary storage for document embeddings
-   - Uses ChromaDB for vector storage (persistent, disk-backed)
-   - Stores all processed documents and their metadata
-   - Handles all production data
-
-2. **GUI Vectorstore** (`D:/GUI/vectorstore`)
-   - Local cache for the GUI application
-   - Contains configuration and metadata
-   - Used for development and testing
-   - Improves GUI performance
+### Monitoring & Management
+- **Real-time Metrics Dashboard**:
+  - Per-metric status indicators
+  - Data freshness monitoring
+  - Error tracking
+  - Performance analytics
+- **Comprehensive Logging**:
+  - System logs
+  - Application logs
+  - LLM interaction logs
+  - Profiling data
+  - Memory usage tracking
+- **Health Monitoring**:
+  - Automated health checks
+  - Process monitoring
+  - Auto-recovery capabilities
+  - System status dashboard
 
 ## Installation
 
-1. Install required dependencies:
+### Prerequisites
+- Python 3.8+
+- Git
+- OpenAI API key
+
+### Option 1: Using `uv` (Recommended)
 ```bash
+# Install uv if you haven't already
+pip install uv
+
+# Clone the repository
+git clone https://github.com/yourusername/ai-assistant-gui.git
+cd ai-assistant-gui
+
+# Create and activate virtual environment
+uv venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+
+# Install dependencies
+uv pip install -r requirements.txt
+```
+
+### Option 2: Using `poetry`
+```bash
+# Install poetry if you haven't already
+pip install poetry
+
+# Clone and setup
+git clone https://github.com/yourusername/ai-assistant-gui.git
+cd ai-assistant-gui
+poetry install
+```
+
+### Option 3: Using `pip`
+```bash
+git clone https://github.com/yourusername/ai-assistant-gui.git
+cd ai-assistant-gui
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-2. Ensure the DATA module is properly set up:
-   - Verify `D:/DATA/vectorstore` exists (ChromaDB format)
-   - Check `D:/DATA/utils/db.py` is accessible
+### Environment Setup
+1. Create a `.env` file in the project root:
+```env
+OPENAI_API_KEY=your-openai-key-here
+VECTOR_DB_PATH=path/to/vectorstore
+LOCAL_VECTOR_DB_PATH=path/to/local/vectorstore
+DATA_DIR=data
+HISTORY_FILE=data/chat_history.json
+```
 
 ## Usage
 
-### Document Processing
-
-1. **Upload Documents**:
-```bash
-# Place document in test_data folder
-python process_and_upload.py
-```
-
-2. **Process and Index**:
-```bash
-# Process document and add to vectorstore
-python process_and_index.py
-```
-
-### Running the GUI
-
-1. **Launch the Application**:
+### Launching the Application
 ```bash
 streamlit run app.py
 ```
 
-2. **Using the Interface**:
-   - Enter queries in the chat interface
-   - View document statistics in the sidebar
-   - Upload new documents through the interface
-   - Monitor vector database status
+### Navigating the Interface
+1. **Main Chat Interface**:
+   - Select your preferred AI agent from the sidebar
+   - Type your query in the chat input
+   - View responses and follow-up suggestions
 
-## Features
+2. **Knowledge Base**:
+   - Access the local knowledge base from the sidebar
+   - Search across indexed files
+   - View file context and metadata
+   - Trigger reindexing when needed
 
-### 1. Document Management
-- Upload and process new documents
-- Automatic document chunking and indexing
-- Metadata management
-- Document version control
+3. **Checklist Management**:
+   - Create and manage multiple checklists
+   - Track progress on tasks
+   - View completion statistics
+   - Export checklist data
 
-### 2. Vector Database Operations
-- Semantic search capabilities
-- Document similarity matching
-- Metadata-based filtering
-- Real-time indexing
+4. **Metrics Dashboard**:
+   - Monitor system performance
+   - Track memory usage
+   - View error rates and logs
+   - Check data freshness
 
-### 3. GUI Features
-- Interactive chat interface
-- Document visualization
-- Search result scoring
-- Real-time status monitoring
-
-## Vector Database Integration
-
-### How It Works
-
-1. **Document Processing Flow**:
+### Sample Queries
+1. **Code Analysis**:
    ```
-   Document → Upload → Chunking → Embedding → Vectorstore
+   "Analyze the performance of the vector database implementation"
+   "Find all references to the logging system in the codebase"
    ```
-   - Documents are uploaded to `D:/DATA/uploads`
-   - Processed and chunked by `process_and_index.py`
-   - Embeddings stored in main vectorstore (ChromaDB)
-   - Metadata maintained for retrieval
 
-2. **Query Processing Flow**:
+2. **Documentation**:
    ```
-   Query → Embedding → Vector Search → Result Retrieval → Response
+   "Generate documentation for the checklist management system"
+   "Summarize the main features of the knowledge base"
    ```
-   - User query is converted to embedding
-   - Similar documents retrieved from vectorstore
-   - Results processed and formatted
-   - Response generated with context
 
-### Database Inspection Tools
+3. **Task Management**:
+   ```
+   "Create a checklist for implementing the new feature"
+   "Track progress on the current sprint tasks"
+   ```
 
-The project includes tools for inspecting and analyzing the vector database:
+## System Prompt Customization
 
-1. **ChromaDB Inspector** (`inspect_chromadb.py`):
-   - Analyzes the structure and content of the ChromaDB database
-   - Provides detailed statistics about collections and documents
-   - Features:
-     - Collection-level document counts
-     - Metadata analysis (filetypes, categories, sources)
-     - Sample document inspection
-     - SQLite database analysis for the communications collection
-   - Usage:
-     ```bash
-     python inspect_chromadb.py
-     ```
-   - Output includes:
-     - Total document counts per collection
-     - Distribution of filetypes and categories
-     - Top sources of documents
-     - Sample metadata entries
-     - Example document content
+The system supports customization of AI agent behavior through prompt templates:
 
-### Vector Database Types
+1. **Agent Selection**:
+   - Choose between different agent personalities
+   - Customize response styles
+   - Set specific task focuses
 
-The system supports multiple vector database backends:
+2. **Context Management**:
+   - Adjust context window size
+   - Modify relevance thresholds
+   - Configure memory retention
 
-1. **ChromaDB** (Primary)
-   - Persistent storage
-   - Efficient similarity search
-   - Metadata filtering
-   - Collection management
+3. **Response Formatting**:
+   - Define output structures
+   - Set formatting preferences
+   - Configure language style
 
-2. **Annoy** (Fallback)
-   - Fast approximate nearest neighbor search
-   - Lightweight implementation
-   - Used when ChromaDB is unavailable
+## Example Inputs and Outputs
 
-> **Note:**
-> Previous documentation and some comments may reference Qdrant. The current implementation does not use Qdrant. All storage and search operations are handled by ChromaDB (or Annoy as fallback). If you wish to add Qdrant support, you will need to implement and test it separately.
-
-## Development
-
-### Testing
-
-1. **Unit Tests**:
-```bash
-python -m unittest test_app.py
-python -m unittest test_vector_db.py
+### Example 1: Code Analysis
+**Input**:
+```
+"Analyze the vector database implementation for potential optimizations"
 ```
 
-2. **Integration Tests**:
-```bash
-python -m unittest test_integration.py
+**Output**:
+```
+Analysis Results:
+1. Current Implementation:
+   - Using ChromaDB with FAISS backend
+   - PQ compression enabled
+   - Batch processing implemented
+
+2. Optimization Opportunities:
+   - Implement caching for frequent queries
+   - Add parallel processing for large datasets
+   - Optimize index parameters
+
+3. Recommended Actions:
+   - [ ] Implement query caching
+   - [ ] Add batch processing optimization
+   - [ ] Profile memory usage
 ```
 
-### Adding New Features
+### Example 2: Documentation Generation
+**Input**:
+```
+"Generate API documentation for the knowledge base search function"
+```
 
-1. **Document Processing**:
-   - Add new processors in `process_and_index.py`
-   - Update chunking logic as needed
-   - Modify metadata handling
+**Output**:
+```
+# Knowledge Base Search API
 
-2. **GUI Components**:
-   - Extend `app.py` with new features
-   - Add visualization components
-   - Implement new search capabilities
+## Function: search(query: str, n_results: int = 5) -> List[Dict[str, Any]]
 
-## Best Practices
+### Parameters:
+- query (str): Search query string
+- n_results (int): Number of results to return (default: 5)
 
-- Use ChromaDB for persistent, production-grade vector storage.
-- Use Annoy for lightweight, local, or fallback scenarios.
-- Avoid concurrent access to the same ChromaDB local DB from multiple processes.
-- Use `get_stats()` or similar lightweight methods for status and health checks.
-- Regularly clear model caches if you encounter memory or loading issues.
+### Returns:
+List of dictionaries containing:
+- content: Retrieved text content
+- file_path: Source file path
+- chunk_index: Position in source file
+- similarity: Relevance score
+
+### Example Usage:
+```python
+results = kb.search("vector database implementation", n_results=3)
+for result in results:
+    print(f"File: {result['file_path']}")
+    print(f"Content: {result['content'][:200]}...")
+```
+```
 
 ## Troubleshooting
 
 ### Common Issues
+1. **High Memory Usage**:
+   - Clear HuggingFace cache
+   - Use lightweight stats methods
+   - Monitor concurrent DB access
 
-1. **Vector Database Connection**:
-   - Verify paths in configuration
-   - Check database permissions
-   - Ensure proper initialization
+2. **Model Loading Errors**:
+   - Clear HuggingFace cache
+   - Check PyTorch compatibility
+   - Try alternative models
 
-2. **Document Processing**:
+3. **Database Locking**:
+   - Ensure single instance access
    - Check file permissions
-   - Verify chunking parameters
-   - Monitor processing logs
-
-3. **GUI Issues**:
-   - Clear browser cache
-   - Restart Streamlit server
-   - Check session state
+   - Clear lock files if needed
 
 ## Contributing
 
-1. Follow the established code structure
-2. Add appropriate tests
-3. Update documentation
-4. Submit pull requests
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
 
 ## License
 
-[Add your license information here]
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-## FAISS Product Quantization (PQ) Compression
+## Business Case Agent
 
-### What is PQ Compression?
-Product Quantization (PQ) is a technique in FAISS that compresses high-dimensional vectors into compact codes, significantly reducing index size and memory usage with a small trade-off in search accuracy. This is especially useful for large-scale vector databases.
+A modular, AI-powered agent for analyzing business cases and generating actionable insights. The system processes documents, enriches context through vector stores and web search, and provides comprehensive analysis with task tracking and metrics.
 
-### How to Enable PQ Compression
-To use PQ compression in the vector store, initialize `FAISSVectorDB` with `use_pq=True` and specify the number of sub-vectors (`m`) and bits per sub-quantizer (`nbits`).
+## Features
 
-#### Example Usage
-```python
-from vector_db import FAISSVectorDB
+- **Document Processing**: Support for multiple file formats (TXT, PDF, DOCX, MD)
+- **Context Enrichment**: Integration with vector stores and web search
+- **AI Analysis**: Multi-step analysis pipeline with customizable prompts
+- **Task Management**: Automated checklist generation with dependencies
+- **Metrics Tracking**: Comprehensive performance and quality metrics
+- **User Interface**: Streamlit-based web interface with visualization
 
-db = FAISSVectorDB(db_path="D:/DATA/vectorstore_pq", use_pq=True, m=8, nbits=8)
-db.add_documents(["example text 1", "example text 2"])
-results = db.search("example query")
-print(results)
+## Installation
+
+1. Clone the repository:
+```bash
+git clone https://github.com/yourusername/business-case-agent.git
+cd business-case-agent
 ```
 
-- `m`: Number of sub-vectors (must divide the embedding dimension, e.g., 8 for 384-dim vectors)
-- `nbits`: Number of bits per sub-quantizer (1-8, higher means less compression, more accuracy)
+2. Create a virtual environment:
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
 
-### Trade-offs
-- **Index size**: PQ can reduce index size by 2x or more.
-- **Accuracy**: Slightly lower than flat (uncompressed) FAISS, but often acceptable for large-scale search.
-- **Training**: PQ requires more training vectors than the number of centroids (m*256). For best results, use at least 10,000 training vectors.
+3. Install dependencies:
+```bash
+pip install -r requirements.txt
+```
 
-### Evaluation Results
-- On 1,000 documents (dim=384):
-  - PQ index size: 0.92MB (vs. 2.01MB for flat FAISS)
-  - Accuracy: 0.4689 (vs. 0.4727 for flat FAISS)
-  - Add time: ~10.5s
-  - Search time: ~0.012s/query
+4. Set up environment variables:
+```bash
+cp .env.example .env
+# Edit .env with your configuration
+```
 
-See `memory_optimization_checklist.md` for more details and recommendations. 
+## Usage
+
+1. Start the application:
+```bash
+streamlit run app.py
+```
+
+2. Access the web interface at `http://localhost:8501`
+
+3. Upload a business case document and click "Analyze Document"
+
+4. View results in the organized tabs:
+   - Analysis: Document summary, key parties, situation, problem, and recommendations
+   - Checklist: Generated tasks with dependencies and progress tracking
+   - Context: Enriched context from vector stores and web search
+   - Metrics: Performance and quality metrics with visualizations
+
+## Architecture
+
+The system consists of several key components:
+
+1. **BusinessCaseAgent**: Core agent class handling document processing and analysis
+2. **AIAssistant**: Manages AI model interactions and prompt processing
+3. **LocalKnowledgeBase**: Handles vector store operations and document storage
+4. **MetricsTracker**: Tracks performance and quality metrics
+5. **Streamlit UI**: Web interface for user interaction
+
+## Configuration
+
+The system can be configured through environment variables or a configuration file:
+
+```python
+# .env
+OPENAI_API_KEY=your_api_key
+VECTOR_DB_PATH=path/to/vector/db
+MAX_DOCUMENT_SIZE=10485760  # 10MB
+```
+
+## Development
+
+### Running Tests
+
+```bash
+# Run all tests
+python -m unittest discover tests
+
+# Run specific test suite
+python -m unittest tests/test_business_case_agent.py
+python -m unittest tests/test_business_case_agent_performance.py
+python -m unittest tests/test_business_case_agent_ui.py
+```
+
+### Code Style
+
+The project follows PEP 8 style guidelines. Use the provided tools to maintain code quality:
+
+```bash
+# Run linter
+flake8 .
+
+# Run type checker
+mypy .
+
+# Run formatter
+black .
+```
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Support
+
+For support, please:
+1. Check the [documentation](docs/)
+2. Search [existing issues](https://github.com/yourusername/business-case-agent/issues)
+3. Create a new issue if needed
+
+## Acknowledgments
+
+- OpenAI for AI capabilities
+- Streamlit for the web interface
+- All contributors to the project 
