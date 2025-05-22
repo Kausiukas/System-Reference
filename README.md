@@ -12,10 +12,10 @@ graph TD
     Core --> LLMAPI[LLM API Providers]
     Core --> Logging[Logging & Memory]
     Core --> Testing[Test Framework]
-    VectorStore --> ChromaDB[(ChromaDB Embeddings DB)]
-    KnowledgeBase --> LocalFiles[(Local Document Storage)]
-    LLMAPI --> OpenAI[(OpenAI/Codex API)]
-    LLMAPI --> LocalLLM[(Local LLM API)]
+    VectorStore --> ChromaDB[ChromaDB Embeddings DB]
+    KnowledgeBase --> LocalFiles[Local Document Storage]
+    LLMAPI --> OpenAI[OpenAI/Codex API]
+    LLMAPI --> LocalLLM[Local LLM API]
 
 
 UI: The front-end is a Streamlit-based web interface that allows user interaction. It supports a real-time
