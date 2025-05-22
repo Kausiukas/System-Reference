@@ -4,7 +4,7 @@ Interface, a central Assistant Core that coordinates various Agents, and support
 knowledge storage, external AI models, logging, and testing. The diagram below illustrates the top-level
 architecture, grouping components by functionality:
 
-    mermaid
+```mermaid
 graph TD
     UI["User Interface (Streamlit GUI)"] --> Core["Assistant Core & Agents"]
     Core --> VectorStore["Vector Store"]
@@ -16,7 +16,7 @@ graph TD
     KnowledgeBase --> LocalFiles["Local Document Storage"]
     LLMAPI --> OpenAI["OpenAI/Codex API"]
     LLMAPI --> LocalLLM["Local LLM API"]
-
+```
 
 UI: The front-end is a Streamlit-based web interface that allows user interaction. It supports a real-time
 chat, document uploads, system status displays, and checklist management . The UI captures user
