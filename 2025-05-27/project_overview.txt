@@ -1,0 +1,129 @@
+📘 Application Overview: Client Profile Builder
+
+Client Profile Builder is a smart assistant designed to help sales teams and account managers automate the process of:
+
+    Extracting information from client communications (emails, PDFs, notes),
+
+    Building and maintaining structured client profiles,
+
+    Tracking sales journey stages,
+
+    Suggesting next actions based on context,
+
+    Automatically generating personalized email drafts.
+
+It combines LangGraph for workflow orchestration, OpenAI for natural language understanding, ChromaDB or FAISS for vector search, LangSmith for runtime observability, and Streamlit for the user interface.
+🔧 Key Features
+📨 1. Email & Document Ingestion
+
+    Supports .msg, .txt, and .pdf files
+
+    Extracts structured data and stores it in temporary memory
+
+    Prepares content for chunking and vectorization
+
+🧠 2. Vector-Based Contextual Memory
+
+    Retrieves relevant past communications and notes from a long-term vector store
+
+    Ensures continuity and deep personalization
+
+📋 3. Structured Client Profile Generation
+
+    Builds/upgrades JSON-based profiles containing:
+
+        Company name, contacts, needs, sentiment
+
+        Sales stage, last action, suggested next step
+
+    Supports continuous enrichment as new data comes in
+
+📈 4. Sales Status Tracker
+
+    Tracks clients across key sales stages:
+
+        lead, qualified, offered, negotiating, closed
+
+    Records interaction history and time-in-stage
+
+    Provides visual and JSON-based output
+
+🧭 5. Decision & Suggestion Engine
+
+    Suggests logical next actions based on profile + history
+
+    Supports auto-escalation or follow-up reminders
+
+✉️ 6. Email Content Generator
+
+    Automatically drafts personalized follow-up, proposal, or outreach emails
+
+    Can use templates and dynamic content slots
+
+    Outputs copy-ready text or HTML emails
+
+🧪 7. Real-Time Observability with LangSmith
+
+    Logs every execution step with full traceability
+
+    Enables performance review, debugging, replay
+
+    Links shown inside Streamlit UI for fast access
+
+📊 8. Visual Workflow Representation (Mermaid)
+
+    Mermaid diagram displays the entire workflow graph
+
+    Enhances user clarity and system explainability
+
+    Dynamically viewable in the Streamlit frontend
+
+🧱 Core Components
+Component	Description
+LangGraph	Orchestrates stateful workflow as a DAG (Directed Acyclic Graph)
+LangChain Tools	Provides LLM and tool chaining capability for reasoning and generation
+OpenAI	Provides summarization, classification, generation, and reasoning
+ChromaDB/FAISS	Stores and retrieves long-term knowledge in vector form
+Streamlit	Web frontend for upload, run, review, and visualization
+LangSmith	Tracks each workflow run, showing input/output/state trace for each step
+Client Folder Structure	Each client has their own folder with content.txt, profile.json, and embeddings/
+🧰 LangGraph Node Descriptions
+Node ID	Function
+export_emails	Downloads/loads new emails from Outlook or file system
+preprocess_and_chunk	Extracts and cleans text, splits into chunks, embeds
+search_memory	Searches client vector DB for relevant past context
+summarize_status	Generates current summary of client's situation
+update_profile_state	Writes/updates client_profile.json with new data
+track_sales_status	Sets or updates the client’s sales pipeline stage
+suggest_next_step	Suggests most appropriate next action (call, offer, reminder, etc.)
+generate_email	Produces email copy based on current profile and next action
+save_and_notify	Saves output files, displays them in UI, links to LangSmith trace
+🔄 State Management
+
+    Short-Term Memory: Transient state passed between LangGraph nodes
+
+    Long-Term Memory: Client’s history embedded into vector database
+
+    Persistent Profile: JSON file storing structured client metadata
+
+💻 User Workflow
+
+    Upload one or more client communication files
+
+    Trigger Workflow via Streamlit
+
+    LangGraph executes: reads, embeds, summarizes, profiles
+
+    LangSmith records trace of all nodes and outputs
+
+    Results displayed: client profile, suggested next step, and email draft
+
+    User can review/edit/send email manually or automate dispatch
+
+🧪 Development Ready
+
+    Modular for extension (add PDF extractors, CRM sync, calendar scheduling)
+
+    Supports LangGraph Studio for visual debugging
+
+    Usable as developer tool or production-facing app

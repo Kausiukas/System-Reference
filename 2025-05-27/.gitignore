@@ -1,0 +1,64 @@
+# Environment variables
+.env
+
+# Data directories
+data/
+D:/DATA/
+**/data/
+
+# Local development
+todo.md
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Logs and databases
+*.log
+*.sqlite3
+chroma.sqlite3
+logs/
+
+# Virtual Environment
+venv/
+ENV/
+
+# IDE specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# OS generated files
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Project specific
+client_embeddings/
+*.msg
+*.pdf
+*.txt
+!requirements.txt
+!project_overview.txt 
