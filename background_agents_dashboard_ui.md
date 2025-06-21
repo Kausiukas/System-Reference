@@ -11,29 +11,26 @@ The sidebar is organized into several sections.
 ### 1.1.1 Quick Status
 
 - **Component**: `st.empty()` placeholder.
-- **States**:
-    - **"Agent Modules Missing"**: `st.error`
-    - **"Agents Not Running"**: `st.warning`
-    - **"Agents Running"**: `st.success`
+- **Description**: Displays the overall status of the agent system.
 
 ### 1.1.2 Configuration
 
-- **LangSmith API Key**: `st.text_input` (type="password")
-- **Project Name**: `st.text_input`
+- **1.1.2.1 LangSmith API Key**: `st.text_input` (type="password")
+- **1.1.2.2 Project Name**: `st.text_input`
 
 ### 1.1.3 Auto Refresh
 
-- **Enable auto-refresh**: `st.checkbox`
-- **Refresh interval (s)**: `st.selectbox`
+- **1.1.3.1 Enable auto-refresh**: `st.checkbox`
+- **1.1.3.2 Refresh interval (s)**: `st.selectbox`
 
 ### 1.1.4 Demo Mode
 
-- **Enable demo mode**: `st.checkbox`
+- **1.1.4.1 Enable demo mode**: `st.checkbox`
   - **Behavior**: This control is disabled after the system has been initialized.
 
 ### 1.1.5 System Controls
 
-- **Initialize System / Emergency Stop**: `st.button`
+- **1.1.5.1 Initialize/Stop Button**: `st.button`
 
 ---
 
@@ -105,31 +102,37 @@ graph TD
     A1 --> C1["<br/>🖥️<br/>1.2 Main Area<br/>"];
 
     subgraph "1.1 Sidebar"
-        B1 --> B1.1["1.1.1 Quick Status"];
-        B1 --> B1.2["1.1.2 Configuration"];
-        B1 --> B1.3["1.1.3 Auto Refresh"];
-        B1 --> B1.4["1.1.4 Demo Mode"];
-        B1 --> B1.5["1.1.5 System Controls"];
+        B1 --> B1.1["1.1.1<br/>Quick Status"];
+        B1 --> B1.2["1.1.2<br/>Configuration"];
+        B1 --> B1.3["1.1.3<br/>Auto Refresh"];
+        B1 --> B1.4["1.1.4<br/>Demo Mode"];
+        B1 --> B1.5["1.1.5<br/>System Controls"];
     end
 
-    subgraph "1.2 Main Display Area"
+    subgraph "1.2 Main Area"
         C1 --> C1.1["1.2.1 Header"];
-        C1 --> C1.2["1.2.2 ❤️ Agent Status Section"];
-        C1 --> C1.3["1.2.3 🔧 System Information"];
+        C1 --> C1.2["1.2.2 ❤️<br/>Agent Status"];
+        C1 --> C1.3["1.2.3 🔧<br/>System Info"];
     end
 
-    subgraph "1.2.2 Agent Status Section"
+    subgraph "1.2.2 Agent Status"
         C1.2 --> D1["1.2.2.1<br/>LangSmith Bridge"];
         C1.2 --> D2["1.2.2.2<br/>Profile Import Executor"];
         C1.2 --> D3["1.2.2.3<br/>Self-Healing Autopatch"];
         C1.2 --> D4["1.2.2.4<br/>Performance Monitor"];
     end
     
-    D1 --> D1.1["Traces Collected"];
-    D1 --> D1.2["Uptime"];
-    D1 --> D1.3["Errors"];
-
-    D2 --> D2.1["Profiles Created"];
-    D2 --> D2.2["Success Rate"];
-    D2 --> D2.3["Uptime"];
+    subgraph "1.2.2.1 Metrics"
+        D1 --> E1["1.2.2.1.1<br/>State"];
+        D1 --> E2["1.2.2.1.2<br/>Uptime"];
+        D1 --> E3["1.2.2.1.3<br/>Traces"];
+        D1 --> E4["1.2.2.1.4<br/>Errors"];
+    end
+    
+    subgraph "1.2.2.2 Metrics"
+        D2 --> F1["1.2.2.2.1<br/>State"];
+        D2 --> F2["1.2.2.2.2<br/>Uptime"];
+        D2 --> F3["1.2.2.2.3<br/>Profiles"];
+        D2 --> F4["1.2.2.2.4<br/>Rate %"];
+    end
 ``` 
