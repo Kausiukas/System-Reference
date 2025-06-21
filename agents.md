@@ -75,7 +75,7 @@ Beyond the agents themselves, the `AgentCoordinator` is the central pillar of th
     - **Health Monitoring**: It runs a monitoring loop to check for silent agents (those that have missed heartbeats) and can trigger recovery or alert mechanisms.
     - **Optimization Orchestration**: It initiates system-wide optimization cycles, collecting insights from agents and coordinating actions based on a generated plan.
 - **State/Database Interaction**:
-    - **Creates and Manages** the single `SharedState` instance.
+    - **Receives** a `SharedState` instance upon initialization from the main launcher script.
     - **Receives** data from all background agents.
     - **Writes** all agent-related data to `SharedState`. It acts as the gatekeeper, ensuring data consistency and preventing race conditions.
 - **Functional Diagram**:
@@ -115,9 +115,9 @@ Beyond the agents themselves, the `AgentCoordinator` is the central pillar of th
     - **System State**: A key-value store for system-wide configuration and aggregated health metrics.
     - *(In-memory)*: It also holds non-persistent data like error patterns and optimization history for real-time analysis.
 - **State/Database Interaction**:
-    - It is instantiated and initialized by the `AgentCoordinator`.
+    - It is instantiated and initialized by the main launcher script (`launch_background_agents.py`).
     - It **only accepts write operations from the `AgentCoordinator`**. This is the most critical aspect of the protocol, ensuring that all state changes are centrally managed.
-    - It can be read by any component that has a reference to it, such as the `PerformanceDashboard` or the `AgentCoordinator` itself.
+    - It can be read by any component, including the dashboard, which connects in a special `read_only` mode.
 - **Conceptual Schema**:
     ```mermaid
     graph BT
@@ -171,10 +171,11 @@ Background agents are long-running services that perform ongoing monitoring, opt
 
 - **State Management**: Indirect via the `AgentCoordinator`.
 - **Interaction Flow**:
-    1. The `AgentCoordinator` instantiates the `SharedState` object (`shared_state.db`).
-    2. When a background agent is registered, the `AgentCoordinator` provides it with a reference to itself.
-    3. The agent sends regular heartbeats and state change notifications to the `AgentCoordinator`.
-    4. The `AgentCoordinator` is solely responsible for writing all updates to the `SharedState`. Agents **do not** write to the `SharedState` directly.
+    1. The main launcher script (`launch_background_agents.py`) instantiates and initializes the `SharedState` object (`shared_state.db`).
+    2. The launcher then creates the `AgentCoordinator`, passing it the `SharedState` instance.
+    3. When a background agent is registered, the `AgentCoordinator` provides it with a reference to itself.
+    4. The agent sends regular heartbeats and state change notifications to the `AgentCoordinator`.
+    5. The `AgentCoordinator` is solely responsible for writing all updates to the `SharedState`. Agents **do not** write to the `SharedState` directly.
 
 This model decouples the agents from the state persistence logic, centralizing control and ensuring data consistency.
 

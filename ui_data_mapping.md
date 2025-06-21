@@ -1,58 +1,32 @@
 # UI Data Mapping (ID: 1)
 
-This document maps the UI components defined in `background_agents_dashboard_ui.md` to the specific source files and functions that provide their data.
+This document maps the UI components defined in `background_agents_dashboard_ui.md` to their data sources. The new architecture centralizes all data fetching into a single function for simplicity and consistency.
+
+**Primary Data Source Function**: `get_dashboard_data()` in `background_agents_dashboard.py`.
+
+This function is the sole entry point for retrieving data for the UI. It connects to the `SharedState` in read-only mode and fetches all necessary information.
 
 ---
 ## 1.1 Sidebar (Control Panel)
 
 | UI ID | UI Element | Source File | Source Object/Function | Data Description |
 |---|---|---|---|---|
-| 1.1.1 | Quick Status | `background_agents_dashboard.py` | `main_dashboard()` | A Streamlit `st.empty()` placeholder whose content (`st.success`, `st.warning`, `st.error`) is determined by the `AGENTS_AVAILABLE` boolean and the `st.session_state.system_initialized` flag. |
-| 1.1.2.1 | LangSmith API Key | `background_agents_dashboard.py` | `st.text_input`, `os.getenv` | A Streamlit text input that displays the value of the `LANGCHAIN_API_KEY` environment variable. |
-| 1.1.2.2 | Project Name | `background_agents_dashboard.py` | `st.text_input`, `os.getenv` | A Streamlit text input that displays the value of the `LANGCHAIN_PROJECT` environment variable. |
-| 1.1.3.x | Auto Refresh | `background_agents_dashboard.py` | `st.checkbox`, `st.selectbox` | Standard Streamlit components. The refresh is triggered by `time.sleep()` and `st.rerun()` at the end of the script. |
-| 1.1.4.1 | Demo Mode | `background_agents_dashboard.py` | `st.checkbox`, `st.session_state`| A Streamlit checkbox whose state is stored in `st.session_state.demo_mode`. This value is passed to the system during initialization. |
-| 1.1.5.1 | Initialize/Stop Button | `background_agents_dashboard.py`| `st.button` | A Streamlit button that triggers either the `dashboard.initialize_system()` or `dashboard.cleanup()` methods depending on the system's state. |
+| 1.1.1 | Info Message | `background_agents_dashboard.py` | `st.info()` | A static informational message. No external data is fetched. |
+| 1.1.2.1 | LangSmith API Key | `background_agents_dashboard.py` | `os.getenv("LANGCHAIN_API_KEY")` | The value of the environment variable is read directly. This is for display only. |
+| 1.1.2.2 | Project Name | `background_agents_dashboard.py` | `os.getenv("LANGCHAIN_PROJECT")` | The value of the environment variable is read directly. This is for display only. |
+| 1.1.3.x | Auto Refresh | `background_agents_dashboard.py` | `st.checkbox`, `st.selectbox` | Standard Streamlit components that control the UI's refresh loop (`time.sleep` and `st.rerun`). |
 
 ---
 ## 1.2 Main Dashboard Area
 
-### 1.2.1 Header
+### Data Flow for Main Area:
+`main_dashboard()` -> `get_dashboard_data()` -> `SharedState` -> UI Components
 
 | UI ID | UI Element | Source File | Source Object/Function | Data Description |
 |---|---|---|---|---|
-| 1.2.1.1 | Title | `background_agents_dashboard.py` | `st.title()` | A static title for the dashboard. |
-| 1.2.1.2 | Status Banner | `background_agents_dashboard.py` | `st.info()` | A banner that shows a static "Agents are running" message with the current timestamp. |
-
-### 1.2.2 Agent Status Section (Common Metrics)
-
-These metrics are sourced from base properties and methods that are common to every agent.
-
-| UI ID | UI Element | Source File | Source Object/Function | Data Description |
-|---|---|---|---|---|
-| (Agent Title) | Agent Name | `background_agents/coordination/base_agent.py` | `BaseAgent.agent_name` | The `agent_name` attribute is set in the `__init__` method of each specific agent class. |
-| (Agent Metric) | State | `background_agents/coordination/shared_state.py` | `SharedState.get_active_agents()` -> `heartbeat_data['state']` | The agent's current `AgentState` is retrieved from the latest heartbeat data stored in the `SharedState`. |
-| (Agent Metric) | Uptime | `background_agents/coordination/base_agent.py` | `BaseAgent.get_uptime()` | This method calculates the `timedelta` between the current time and the `_init_start_time` set when the agent was instantiated. |
-| (Agent Metric) | Errors | `background_agents/coordination/base_agent.py` | `BaseAgent.errors` | A list attribute on the `BaseAgent` class that accumulates error dictionaries. The UI displays the `len()` of this list. |
-| (Agent Metric) | Heartbeat | `background_agents/coordination/shared_state.py`| `SharedState.get_active_agents()` | The presence of a recent heartbeat record for an agent in the `SharedState` determines if the "✅" icon is shown. |
-
-### 1.2.2 Agent Status Section (Specific Metrics)
-
-These metrics are unique to each agent and are typically sourced from a `get_agent_metrics()` method or specific attributes on the agent's class.
-
-| UI ID | Agent & Metric | Source File | Source Object/Function | Data Description |
-|---|---|---|---|---|
-| 1.2.2.1.3 | **LangSmith Bridge**<br/>*Traces Collected* | `background_agents/monitoring/langsmith_bridge.py` | `LangSmithBridgeAgent.traces_collected` | An integer attribute that is incremented within the `_process_cycle` method each time traces are successfully fetched from the LangSmith API. |
-| 1.2.2.2.3 | **Profile Import Executor**<br/>*Profiles Created* | `background_agents/monitoring/profile_import_executor.py` | `ProfileImportExecutorAgent.profiles_created` | An attribute that is incremented inside the `_process_client` method upon the successful creation of a user profile. The `get_agent_metrics` method returns this value. |
-| 1.2.2.2.4 | **Profile Import Executor**<br/>*Success Rate* | `background_agents/monitoring/profile_import_executor.py` | `ProfileImportExecutorAgent.get_agent_metrics()`| This method calculates the success rate on the fly by dividing `profiles_created` by the total number of attempts (`total_executions`). |
-| 1.2.2.3.3 | **Self-Healing Autopatch**<br/>*Patches Applied*| `background_agents/monitoring/self_healing_agent.py` | `SelfHealingAutopatchAgent.patches_applied`| An attribute that is incremented within the `_run_patch` method whenever a database patch is applied successfully. |
-| 1.2.2.4.3 | **Performance Monitor**<br/>*Optimizations Suggested*| `background_agents/monitoring/performance_monitor.py` | `PerformanceMonitorAgent.optimization_history` | A list of optimization records. The UI displays the `len()` of this list to show the total count of suggestions. |
-| 1.2.2.4.4 | **Performance Monitor**<br/>*Anomalies Detected*| `background_agents/monitoring/performance_monitor.py` | `PerformanceMonitorAgent.anomaly_history` | A `deque` that stores detected anomaly events. The UI displays the `len()` of this history. |
-
-### 1.2.3 System Information Expander
-
-| UI ID | UI Element | Source File | Source Object/Function | Data Description |
-|---|---|---|---|---|
-| 1.2.3 | Configuration | `background_agents_dashboard.py` | `dashboard.coordinator`, `dashboard.shared_state` | Data is sourced directly from the coordinator (e.g., `is_running`, `len(agents)`) and the shared state (`get_active_agents()`) within the dashboard's main rendering loop. |
-| 1.2.3 | Environment | `background_agents_dashboard.py` | `os`, `sys` | Standard library modules are used to get the environment variables (`os.getenv`), platform (`sys.platform`), and Python version (`sys.version`). |
-| 1.2.3 | System Stats | `background_agents_dashboard.py` | `psutil` | The `psutil` library is called directly to get the current system-wide CPU and memory usage percentages. | 
+| 1.2.2 | Status Banner | `background_agents_dashboard.py` | `datetime.now()` | A simple timestamp generated each time the dashboard refreshes. |
+| 1.2.3 | Agent Status Section | `background_agents_dashboard.py` | `get_dashboard_data()` -> `shared_state.get_active_agents()` | The list of active agents is fetched from `SharedState`. The `render_agent_cards()` function iterates through this list to display a card for each agent. The `agent_name`, `state`, `uptime`, and `errors` are all pulled from the dictionary representing each agent in this list. |
+| 1.2.4 | System Info: Total Agents | `background_agents_dashboard.py` | `get_dashboard_data()` -> `shared_state.get_all_known_agents()` | The total number of unique agents that have ever registered. This is calculated by getting the `len()` of the list returned by this function. |
+| 1.2.4 | System Info: Active Agents | `background_agents_dashboard.py` | `get_dashboard_data()` -> `shared_state.get_active_agents()` | The number of currently active agents, calculated by `len()` of the list of active agents. |
+| 1.2.4 | System Info: Environment | `background_agents_dashboard.py` | `os`, `sys` | Standard library modules are used to get the API key status, project name, platform, and Python version for display. |
+| 1.2.4 | System Info: Dashboard Stats | `background_agents_dashboard.py` | `psutil` | The `psutil` library is called directly by the dashboard to get its own process's CPU and memory usage. This is a local stat and is not fetched from `SharedState`. | 
