@@ -62,6 +62,49 @@ graph TD
     style DataSync fill:#fff8c5,stroke:#b3a973
 ```
 
+## Core System Components
+
+Beyond the agents themselves, the `AgentCoordinator` is the central pillar of the background processing system.
+
+### Agent Coordinator
+- **File**: `background_agents/coordination/agent_coordinator.py`
+- **Type**: System Orchestrator
+- **Function**: The `AgentCoordinator` is the master controller for all background agents. Its primary responsibilities are:
+    - **Lifecycle Management**: It handles the registration, startup, and shutdown of all background agents.
+    - **State Aggregation**: It is the sole component authorized to write to the `SharedState` database. It receives heartbeats, metrics, and state change notifications from all agents and persists this information.
+    - **Health Monitoring**: It runs a monitoring loop to check for silent agents (those that have missed heartbeats) and can trigger recovery or alert mechanisms.
+    - **Optimization Orchestration**: It initiates system-wide optimization cycles, collecting insights from agents and coordinating actions based on a generated plan.
+- **State/Database Interaction**:
+    - **Creates and Manages** the single `SharedState` instance.
+    - **Receives** data from all background agents.
+    - **Writes** all agent-related data to `SharedState`. It acts as the gatekeeper, ensuring data consistency and preventing race conditions.
+- **Functional Diagram**:
+    ```mermaid
+    graph TD
+        subgraph "Agent Inputs"
+            direction LR
+            A1[Agent 1: Heartbeat]
+            A2[Agent 2: State Change]
+            A3[Agent 3: PerformanceMetric]
+        end
+
+        subgraph "Coordinator Logic"
+            A1 --> C{Receive & Process};
+            A2 --> C;
+            A3 --> C;
+            C -- Formatted Data --> D[Update SharedState DB];
+            M[Monitoring Loop] -.-> C;
+            O[Optimization Loop] -.-> C;
+        end
+
+        subgraph "System Outputs"
+            D -- "Write" --> SharedState[("fa:fa-database SharedState")];
+            C -- "Read" --> SharedState;
+        end
+
+        style C fill:#cde4ff
+    ```
+
 ## Agent Interaction Protocol
 
 There are two primary types of agents in this system, each with a distinct interaction protocol:
