@@ -105,6 +105,62 @@ Beyond the agents themselves, the `AgentCoordinator` is the central pillar of th
         style C fill:#cde4ff
     ```
 
+### Shared State
+- **File**: `background_agents/coordination/shared_state.py`
+- **Type**: Centralized State Repository
+- **Function**: The `SharedState` object is the single source of truth for the entire background agent system. It provides a durable, thread-safe, and asynchronous interface for persisting and retrieving state information. It uses a local SQLite database (`shared_state.db`) as its backend to ensure data survives restarts and can be accessed by multiple processes, such as a running dashboard.
+- **Key Data Structures**:
+    - **Agent Heartbeats**: A table containing the last known status, state, and metrics for every registered agent.
+    - **Performance Metrics**: A time-series log of all performance data reported by agents.
+    - **System State**: A key-value store for system-wide configuration and aggregated health metrics.
+    - *(In-memory)*: It also holds non-persistent data like error patterns and optimization history for real-time analysis.
+- **State/Database Interaction**:
+    - It is instantiated and initialized by the `AgentCoordinator`.
+    - It **only accepts write operations from the `AgentCoordinator`**. This is the most critical aspect of the protocol, ensuring that all state changes are centrally managed.
+    - It can be read by any component that has a reference to it, such as the `PerformanceDashboard` or the `AgentCoordinator` itself.
+- **Conceptual Schema**:
+    ```mermaid
+    graph BT
+        subgraph "SharedState DB (shared_state.db)"
+            direction LR
+            
+            T1[("
+                **agent_heartbeats**<br/>
+                - agent_id (PK)<br/>
+                - agent_name<br/>
+                - state<br/>
+                - last_heartbeat<br/>
+                - metrics
+            ")]
+
+            T2[("
+                **performance_metrics**<br/>
+                - id (PK)<br/>
+                - timestamp<br/>
+                - metric_name<br/>
+                - value<br/>
+                - source_agent
+            ")]
+
+            T3[("
+                **system_state**<br/>
+                - key (PK)<br/>
+                - value
+            ")]
+        end
+
+        Coordinator[AgentCoordinator] -- "Writes To" --> T1
+        Coordinator -- "Writes To" --> T2
+        Coordinator -- "Writes To" --> T3
+        
+        Dashboard[Dashboard] -- "Reads From" --> T1
+        Dashboard -- "Reads From" --> T2
+        Dashboard -- "Reads From" --> T3
+
+        style Coordinator fill:#cde4ff
+        style Dashboard fill:#d4edda
+    ```
+
 ## Agent Interaction Protocol
 
 There are two primary types of agents in this system, each with a distinct interaction protocol:
