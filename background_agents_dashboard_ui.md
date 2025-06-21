@@ -46,14 +46,44 @@ The sidebar is organized into several sections.
 
 ### 1.2.2 Agent Status Section
 
-- **Header**: `st.header("❤️ Agent Status")`
-- **Container**: A container for each agent, displaying its live data.
-- **Agent Subheader**: `st.subheader(agent_name)`
-- **Metrics Display**: `st.columns` are used to show key metrics for each agent:
-    - **State**: The current `AgentState`.
-    - **Uptime**: The agent's uptime.
-    - **Errors**: A count of errors.
-    - **Heartbeat**: A ✅ or ❌ icon.
+This section dynamically creates a container for each registered agent.
+
+#### 1.2.2.1 LangSmith Bridge Agent
+- **Title**: `st.subheader("LangSmith Bridge Agent")`
+- **Metrics**:
+    - **State**: Current `AgentState` (e.g., "ACTIVE").
+    - **Uptime**: `agent.get_uptime()`.
+    - **Traces Collected**: A running count of traces successfully sent to LangSmith.
+    - **Errors**: A count of communication or data processing errors.
+    - **Heartbeat**: ✅ / ❌ icon.
+
+#### 1.2.2.2 Profile Import Executor Agent
+- **Title**: `st.subheader("Profile Import Executor Agent")`
+- **Metrics**:
+    - **State**: Current `AgentState`.
+    - **Uptime**: `agent.get_uptime()`.
+    - **Profiles Created**: A count of profiles successfully imported in the current session.
+    - **Success Rate**: The percentage of successful imports.
+    - **Errors**: A count of import failures.
+    - **Heartbeat**: ✅ / ❌ icon.
+
+#### 1.2.2.3 Self-Healing Autopatch Agent
+- **Title**: `st.subheader("Self-Healing Autopatch Agent")`
+- **Metrics**:
+    - **State**: Current `AgentState`.
+    - **Uptime**: `agent.get_uptime()`.
+    - **Patches Applied**: A count of successful autopatches.
+    - **Errors**: A count of patching failures.
+    - **Heartbeat**: ✅ / ❌ icon.
+
+#### 1.2.2.4 Performance Monitor Agent
+- **Title**: `st.subheader("Performance Monitor Agent")`
+- **Metrics**:
+    - **State**: Current `AgentState`.
+    - **Uptime**: `agent.get_uptime()`.
+    - **Optimizations Suggested**: A count of performance optimizations identified.
+    - **Anomalies Detected**: A count of detected performance anomalies.
+    - **Heartbeat**: ✅ / ❌ icon.
 
 ### 1.2.3 System Information Expander
 
@@ -67,11 +97,11 @@ The sidebar is organized into several sections.
 
 ## 2. UI Visualization
 
-The following diagram illustrates the component hierarchy of the dashboard UI, with numerical identifiers and mappings to actual system components.
+The following diagram illustrates the component hierarchy, including agent-specific details.
 
 ```mermaid
 graph TD
-    A1["<br/>🤖<br/>1. Dashboard UI<br/>"] --> B1["<br/>🔩<br/>1.1 Sidebar<br/>(Control Panel)<br/>"];
+    A1["<br/>🤖<br/>1. Dashboard UI<br/>"] --> B1["<br/>🔩<br/>1.1 Sidebar<br/>"];
     A1 --> C1["<br/>🖥️<br/>1.2 Main Area<br/>"];
 
     subgraph "1.1 Sidebar"
@@ -83,25 +113,23 @@ graph TD
     end
 
     subgraph "1.2 Main Display Area"
-        C1 --> C1.1["1.2.1 Header Banner"];
+        C1 --> C1.1["1.2.1 Header"];
         C1 --> C1.2["1.2.2 ❤️ Agent Status Section"];
         C1 --> C1.3["1.2.3 🔧 System Information"];
     end
 
     subgraph "1.2.2 Agent Status Section"
-        C1.2 --> D1["LangSmith Bridge"];
-        C1.2 --> D2["Profile Import Executor"];
-        C1.2 --> D3["Self-Healing Autopatch"];
-        C1.2 --> D4["Performance Monitor"];
+        C1.2 --> D1["1.2.2.1<br/>LangSmith Bridge"];
+        C1.2 --> D2["1.2.2.2<br/>Profile Import Executor"];
+        C1.2 --> D3["1.2.2.3<br/>Self-Healing Autopatch"];
+        C1.2 --> D4["1.2.2.4<br/>Performance Monitor"];
     end
     
-    D1 --> D1.1["State"];
+    D1 --> D1.1["Traces Collected"];
     D1 --> D1.2["Uptime"];
     D1 --> D1.3["Errors"];
-    D1 --> D1.4["Heartbeat"];
 
-    D2 --> D2.1["State"];
-    D2 --> D2.2["Uptime"];
-    D2 --> D2.3["Errors"];
-    D2 --> D2.4["Heartbeat"];
+    D2 --> D2.1["Profiles Created"];
+    D2 --> D2.2["Success Rate"];
+    D2 --> D2.3["Uptime"];
 ``` 
