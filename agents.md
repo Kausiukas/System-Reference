@@ -330,3 +330,20 @@ Utility agents are designed for specific, often synchronous, tasks. They are ins
         MainVS & LocalVSIn & Context --> A;
         C --> LocalVSOut;
     ```
+
+## Background Agents
+
+| Agent Name                    | File Path                                             | Class Name                      | Description |
+|-------------------------------|------------------------------------------------------|----------------------------------|-------------|
+| LangSmith Bridge Agent        | background_agents/monitoring/langsmith_bridge.py      | LangSmithBridgeAgent            | Bridges LangGraph execution with LangSmith monitoring and tracing. Collects traces, monitors API, and provides real-time integration with LangSmith platform. |
+| Profile Import Executor Agent | background_agents/monitoring/profile_import_executor.py<br>background_agents/monitoring/langgraph_executor.py | ProfileImportExecutorAgent       | Handles batch imports of profiles, ensuring reliable data ingestion and metrics tracking. (Primary implementation: profile_import_executor.py; langgraph_executor.py may contain variants or refactored logic.) |
+| Self-Healing Autopatch Agent  | background_agents/monitoring/self_healing_agent.py<br>background_agents/coordination/self_healing_autopatch.py<br>utils/self_healing_autopatch.py | SelfHealingAutopatchAgent       | Monitors system health and applies automated fixes for common issues. Uses utility logic from utils/self_healing_autopatch.py. |
+| Performance Monitor Agent     | background_agents/monitoring/performance_monitor.py   | PerformanceMonitorAgent          | Monitors system performance, resource usage, and detects anomalies. Provides real-time metrics and automated optimization. |
+
+> **Note:**
+> - The Profile Import Executor Agent has logic in both `profile_import_executor.py` (primary) and `langgraph_executor.py` (variant/refactor). Clarify which is canonical for your deployment.
+> - The Self-Healing Autopatch Agent uses patching logic from `utils/self_healing_autopatch.py`.
+> - The LangSmith Bridge Agent and Performance Monitor Agent were missing from the previous documentation and are now included.
+
+### Other Agents Mentioned
+- **LangGraph Executor Agent** and **Data Sync Agent** are referenced in the overview but are not present as active code files or in the current agent list. Clarify in the documentation if these are planned, deprecated, or implemented elsewhere.
