@@ -41,15 +41,14 @@ graph LR
 ### 🟦 **LangGraph Workflow (Mermaid)**
 ```mermaid
 graph TD
-    Start([Start]) --> Init[initialize()]
+    Start[Start] --> Init[initialize()]
     Init --> MainLoop[main_loop()]
     MainLoop --> Heartbeat[update_agent_heartbeat]
     Heartbeat --> Work[do_work()]
     Work --> MainLoop
-    Work -->|Error| HandleError[handle_error()]
+    Work -- Error --> HandleError[handle_error()]
     HandleError --> MainLoop
-    MainLoop -->|Shutdown| End[End]
-```
+    MainLoop -- Shutdown --> End[End]
 
 ---
 
