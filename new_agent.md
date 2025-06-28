@@ -199,4 +199,63 @@ class MyNewAgent(BaseAgent):
 
 ---
 
-For more advanced patterns, see `heartbeat_agent.md` and the dashboard's Health tab for dynamic tips. 
+## 13. Advanced Onboarding & Workspace-Specific Best Practices
+
+### Registration & Coordinator Integration
+- Always register your agent with the `AgentCoordinator` using `await coordinator.register_agent(agent)`.
+- The coordinator manages agent lifecycle, state, and all writes to `SharedState`.
+- Agents should not write directly to `SharedState`—always use coordinator methods for heartbeats and state changes.
+
+### State Transitions & Lifecycle
+- Use the provided `AgentState` enum for all state transitions (e.g., `INITIALIZING`, `DEPLOYING`, `MONITORING`, `ACTIVE`, `ERROR`, `SHUTDOWN`).
+- Log all state changes using the lifecycle logger for traceability.
+- After initialization, transition to `MONITORING` or `ACTIVE` as appropriate.
+- On error, transition to `ERROR` and attempt recovery or shutdown.
+
+### Heartbeat & Retry Logic
+- Use the built-in `_send_heartbeat` method (or equivalent) with retry and exponential backoff.
+- If the coordinator is unavailable, log the error and retry. After repeated failures, transition to `ERROR` state.
+- Heartbeats should include metrics and current state.
+
+### Shutdown & Cleanup
+- Implement `shutdown()` and `cleanup()` methods to gracefully stop the agent, cancel tasks, and release resources.
+- Always set the shutdown event and log shutdown events for auditability.
+
+### Logging & Metrics
+- Use the agent-specific logger and lifecycle logger for all major events (init, state change, heartbeat, error, shutdown).
+- Log metrics and errors to enable dashboard monitoring and troubleshooting.
+- Use structured logging for easier parsing and analysis.
+
+### Dashboard Integration
+- Ensure your agent's state, metrics, and errors are visible in the dashboard by following the coordinator protocol.
+- Use unique agent names and versions to avoid dashboard confusion.
+- Test dashboard integration using the provided test scripts and by monitoring the UI.
+
+### Async & Blocking Gotchas
+- Never use `time.sleep()` in async code—always use `await asyncio.sleep()`.
+- Avoid blocking I/O or long-running synchronous operations in the main loop.
+- Use async file/database/network operations wherever possible.
+
+### Unique Naming & Versioning
+- Use a unique `agent_name` and `agent_id` (often `f"{agent_name}__{version}"`) for each agent.
+- This ensures correct registration, monitoring, and troubleshooting.
+
+### Testing & Diagnostics
+- Use scripts like `test_agent_startup.py` and `add_missing_agents.py` to verify agent registration, startup, and heartbeat.
+- Check logs for successful registration, state transitions, and error handling.
+- Use the dashboard to confirm agent visibility and health.
+
+### Troubleshooting Checklist
+- If your agent is not visible in the dashboard:
+  - Check registration with the coordinator.
+  - Ensure heartbeats are being sent and received.
+  - Verify unique naming/versioning.
+  - Check logs for errors during startup or heartbeat.
+- If your agent is stuck in `initializing` or `error`:
+  - Review state transitions and initialization logic.
+  - Check for blocking operations or missing async/await.
+  - Use lifecycle logs for detailed event tracing.
+
+---
+
+For more details, see `agents.md`, `heartbeat_agent.md`, and the dashboard Health tab for dynamic, context-aware tips. 
