@@ -49,6 +49,7 @@ graph TD
     Work -->|Error| HandleError[handle_error()]
     HandleError --> MainLoop
     MainLoop -->|Shutdown| End([End])
+
 ```
 
 ---
