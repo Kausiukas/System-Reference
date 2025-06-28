@@ -13,6 +13,7 @@ The agent ecosystem is designed to create a robust, self-regulating, and efficie
 - **LangGraph Executor Agent**: The advanced workflow engine for complex, multi-step tasks.
 - **Data Sync Agent**: A specialized utility for maintaining data consistency between vector stores.
 - **NewAgent (Example)**: A template for implementing new background agents, demonstrating best practices for integration and monitoring.
+- **AI Help Agent (AIHelpAgent)**: An LLM+RAG-powered agent providing intelligent help/chat assistance in the UI.
 
 **Collective Interaction:**
 
@@ -20,9 +21,9 @@ The process typically begins with the **Profile Import Executor Agent**, which r
 
 This data-rich environment enables the **Self-Healing Agent** to act. It analyzes the metrics from the `SharedState` to detect anomalies, identify error patterns, and apply automated fixes, thereby ensuring system stability.
 
-When more complex operations are required—perhaps triggered by newly imported data or a specific system state—the **LangGraph Executor Agent** is invoked to manage sophisticated, stateful workflows. The **NewAgent** can be added to extend system functionality, following the same protocols for heartbeat, state, and error reporting. Finally, the **Data Sync Agent** can be used in any of these workflows to ensure that specialized data stores are consistent and up-to-date for high-quality results.
+When more complex operations are required—perhaps triggered by newly imported data or a specific system state—the **LangGraph Executor Agent** is invoked to manage sophisticated, stateful workflows. The **NewAgent** can be added to extend system functionality, following the same protocols for heartbeat, state, and error reporting. The **AI Help Agent** provides real-time, context-aware assistance to users via the dashboard UI, leveraging LLM and RAG to answer questions and guide users. Finally, the **Data Sync Agent** can be used in any of these workflows to ensure that specialized data stores are consistent and up-to-date for high-quality results.
 
-Together, these agents create a virtuous cycle: data is ingested, performance is monitored, the system heals itself, and complex tasks are reliably executed, all with clear visibility and coordination managed through the `SharedState`.
+Together, these agents create a virtuous cycle: data is ingested, performance is monitored, the system heals itself, complex tasks are reliably executed, and users receive intelligent assistance—all with clear visibility and coordination managed through the `SharedState`.
 
 ### System Architecture Diagram
 
@@ -38,6 +39,7 @@ graph TD
             SelfHeal[Self-Healing Agent]
             LangGraphExec[LangGraph Executor]
             NewAgent[NewAgent (Example)]
+            AIHelpAgent[AI Help Agent]
         end
 
         ProfileImport -- "Heartbeat, Metrics" --> Coordinator
@@ -45,8 +47,10 @@ graph TD
         SelfHeal -- "Heartbeat, State" --> Coordinator
         LangGraphExec -- "Heartbeat, State" --> Coordinator
         NewAgent -- "Heartbeat, State" --> Coordinator
+        AIHelpAgent -- "Heartbeat, State, Help Logs" --> Coordinator
 
         Coordinator -- "Provides System Data" --> SelfHeal
+        Coordinator -- "Provides Help Data" --> AIHelpAgent
     end
 
     subgraph "External Systems & Utility Agents"
@@ -59,11 +63,13 @@ graph TD
     ProfileImport -- "Reads From" --> DataSource
     ProfileImport -- "Writes To" --> MainDB
     DataSync -- "Syncs Data With" --> MainDB
+    AIHelpAgent -- "Retrieves Docs/Logs/Code" --> MainDB
 
     style Coordinator fill:#cde4ff,stroke:#6a8eae
     style SharedState fill:#dbffd6,stroke:#83a380
     style DataSync fill:#fff8c5,stroke:#b3a973
     style NewAgent fill:#e3eaff,stroke:#6a8eae
+    style AIHelpAgent fill:#ffe3e3,stroke:#e57373
 ```
 
 ## Core System Components
@@ -344,14 +350,16 @@ Utility agents are designed for specific, often synchronous, tasks. They are ins
 | Self-Healing Autopatch Agent  | background_agents/monitoring/self_healing_agent.py<br>background_agents/coordination/self_healing_autopatch.py<br>utils/self_healing_autopatch.py | SelfHealingAutopatchAgent       | Monitors system health and applies automated fixes for common issues. Uses utility logic from utils/self_healing_autopatch.py. |
 | Performance Monitor Agent     | background_agents/monitoring/performance_monitor.py   | PerformanceMonitorAgent          | Monitors system performance, resource usage, and detects anomalies. Provides real-time metrics and automated optimization. |
 | NewAgent (Example)            | background_agents/your_category/new_agent.py          | NewAgent                        | Example/template agent for onboarding and best practices. Demonstrates heartbeat, state, and error integration. |
+| AI Help Agent                 | background_agents/ai_help/ai_help_agent.py            | AIHelpAgent                     | LLM+RAG-powered agent providing intelligent help/chat assistance in the UI. Integrates with documentation, logs, and codebase for context-aware answers. |
 
 > **Note:**
 > - The Profile Import Executor Agent has logic in both `profile_import_executor.py` (primary) and `langgraph_executor.py` (variant/refactor). Clarify which is canonical for your deployment.
 > - The Self-Healing Autopatch Agent uses patching logic from `utils/self_healing_autopatch.py`.
 > - The LangSmith Bridge Agent and Performance Monitor Agent were missing from the previous documentation and are now included.
 > - **NewAgent** is a template/example for new agent development and integration.
+> - **AI Help Agent** is the intelligent help/chat agent for the UI, leveraging LLM and RAG.
 
-### LangGraph Workflow Example (with NewAgent)
+### LangGraph Workflow Example (with NewAgent and AIHelpAgent)
 ```mermaid
 graph TD
     Start([Start]) --> Init[NewAgent: initialize()]
@@ -362,6 +370,12 @@ graph TD
     Work -->|Error| HandleError[NewAgent: handle_error()]
     HandleError --> MainLoop
     MainLoop -->|Shutdown| End([End])
+    %% AIHelpAgent branch
+    Start2([Start]) --> Init2[AIHelpAgent: initialize()]
+    Init2 --> MainLoop2[AIHelpAgent: main_loop()]
+    MainLoop2 --> HelpReq[AIHelpAgent: handle_help_request()]
+    HelpReq --> MainLoop2
+    MainLoop2 -->|Shutdown| End2([End])
 ```
 
 ### Other Agents Mentioned
