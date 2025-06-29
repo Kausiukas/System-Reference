@@ -29,47 +29,42 @@ Together, these agents create a virtuous cycle: data is ingested, performance is
 
 ```mermaid
 graph TD
-    subgraph "Background Agent System"
-        Coordinator[AgentCoordinator] -- "Manages & Writes" --> SharedState[("fa:fa-database SharedState DB")]
+    subgraph Background_Agent_System
+        Coordinator[AgentCoordinator] --> SharedState[SharedState DB]
 
-        subgraph "Background Agents"
+        subgraph Background_Agents
             direction LR
             ProfileImport[Profile Import Executor]
             PerfMon[Performance Monitor]
             SelfHeal[Self-Healing Agent]
             LangGraphExec[LangGraph Executor]
-            NewAgent[NewAgent (Example)]
+            NewAgent[NewAgent Example]
             AIHelpAgent[AI Help Agent]
         end
 
-        ProfileImport -- "Heartbeat, Metrics" --> Coordinator
-        PerfMon -- "Heartbeat, Metrics" --> Coordinator
-        SelfHeal -- "Heartbeat, State" --> Coordinator
-        LangGraphExec -- "Heartbeat, State" --> Coordinator
-        NewAgent -- "Heartbeat, State" --> Coordinator
-        AIHelpAgent -- "Heartbeat, State, Help Logs" --> Coordinator
+        ProfileImport -->|Heartbeat, Metrics| Coordinator
+        PerfMon -->|Heartbeat, Metrics| Coordinator
+        SelfHeal -->|Heartbeat, State| Coordinator
+        LangGraphExec -->|Heartbeat, State| Coordinator
+        NewAgent -->|Heartbeat, State| Coordinator
+        AIHelpAgent -->|Heartbeat, State, Help Logs| Coordinator
 
-        Coordinator -- "Provides System Data" --> SelfHeal
-        Coordinator -- "Provides Help Data" --> AIHelpAgent
+        Coordinator -->|Provides System Data| SelfHeal
+        Coordinator -->|Provides Help Data| AIHelpAgent
     end
 
-    subgraph "External Systems & Utility Agents"
+    subgraph External_Systems_And_Utility_Agents
         direction TB
-        DataSource[("fa:fa-file-alt Data Source")]
-        MainDB[("fa:fa-hdd Main DB / VectorStore")]
+        DataSource[Data Source]
+        MainDB[Main DB / VectorStore]
         DataSync[Data Sync Agent]
     end
 
-    ProfileImport -- "Reads From" --> DataSource
-    ProfileImport -- "Writes To" --> MainDB
-    DataSync -- "Syncs Data With" --> MainDB
-    AIHelpAgent -- "Retrieves Docs/Logs/Code" --> MainDB
+    ProfileImport -->|Reads From| DataSource
+    ProfileImport -->|Writes To| MainDB
+    DataSync -->|Syncs Data With| MainDB
+    AIHelpAgent -->|Retrieves Docs Logs Code| MainDB
 
-    style Coordinator fill:#cde4ff,stroke:#6a8eae
-    style SharedState fill:#dbffd6,stroke:#83a380
-    style DataSync fill:#fff8c5,stroke:#b3a973
-    style NewAgent fill:#e3eaff,stroke:#6a8eae
-    style AIHelpAgent fill:#ffe3e3,stroke:#e57373
 ```
 
 ## Core System Components
