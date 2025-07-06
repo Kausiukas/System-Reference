@@ -1,475 +1,577 @@
 #!/usr/bin/env python3
 """
-Background Agents System Launcher
+Background Agents Launcher
 
-Comprehensive launcher for the PostgreSQL-based background agents monitoring system.
-Provides agent lifecycle management, health monitoring, and graceful shutdown handling.
+Enterprise agent launcher with PostgreSQL integration,
+comprehensive health monitoring, and automated recovery.
 """
 
 import asyncio
 import logging
 import signal
 import sys
-import os
 import time
+import os
+from pathlib import Path
+from typing import Dict, List, Optional, Any
 from datetime import datetime, timezone
-from typing import Dict, List, Optional
-import traceback
+import json
 
-# Add project root to path
-project_root = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, project_root)
-
-from background_agents.coordination.shared_state import SharedState
+# Import coordination system
 from background_agents.coordination.agent_coordinator import AgentCoordinator
 from background_agents.coordination.system_initializer import SystemInitializer
+from background_agents.coordination.shared_state import SharedState
+from background_agents.coordination.postgresql_adapter import PostgreSQLAdapter, ConnectionConfig
+
+# Import agents
 from background_agents.monitoring.heartbeat_health_agent import HeartbeatHealthAgent
 from background_agents.monitoring.performance_monitor import PerformanceMonitor
 from background_agents.monitoring.langsmith_bridge import LangSmithBridge
 from background_agents.ai_help.ai_help_agent import AIHelpAgent
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler('logs/system_startup.log'),
-        logging.StreamHandler(sys.stdout)
-    ]
-)
-logger = logging.getLogger(__name__)
 
 class BackgroundAgentsLauncher:
     """
-    Main launcher class for the background agents system.
+    Enterprise Background Agents Launcher
     
-    Manages the complete lifecycle of the agent system including:
-    - System initialization and database setup
-    - Agent registration and startup
-    - Health monitoring and coordination
-    - Graceful shutdown and cleanup
+    Coordinates startup, monitoring, and lifecycle management of all background agents
+    with PostgreSQL integration and automated recovery capabilities.
     """
     
     def __init__(self):
-        """Initialize the launcher."""
+        # Setup logging
+        self.setup_logging()
+        self.logger = logging.getLogger("background_agents_launcher")
+        
+        # System components
+        self.postgresql_adapter = None
         self.shared_state = None
-        self.system_initializer = None
         self.agent_coordinator = None
+        self.system_initializer = None
+        
+        # Agent instances
         self.agents = {}
-        self.running = False
+        self.agent_tasks = {}
+        
+        # System state
+        self.is_running = False
+        self.startup_time = None
         self.shutdown_event = asyncio.Event()
         
         # Configuration
-        self.config = {
-            'startup_timeout': 60,
-            'shutdown_timeout': 30,
-            'health_check_interval': 30,
-            'max_startup_retries': 3
+        self.config = self.load_configuration()
+        
+        # Setup signal handlers
+        self.setup_signal_handlers()
+        
+    def setup_logging(self) -> None:
+        """Setup comprehensive logging for the launcher"""
+        
+        # Create logs directory
+        logs_dir = Path("logs")
+        logs_dir.mkdir(exist_ok=True)
+        
+        # Configure logging
+        log_format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        
+        logging.basicConfig(
+            level=logging.INFO,
+            format=log_format,
+            handlers=[
+                logging.FileHandler(logs_dir / "background_agents_launcher.log"),
+                logging.StreamHandler(sys.stdout)
+            ]
+        )
+        
+        # Set specific log levels
+        logging.getLogger("background_agents").setLevel(logging.INFO)
+        logging.getLogger("postgresql").setLevel(logging.WARNING)
+        
+    def load_configuration(self) -> Dict[str, Any]:
+        """Load system configuration"""
+        
+        config = {
+            # Database configuration
+            'database': {
+                'host': os.getenv('POSTGRESQL_HOST', 'localhost'),
+                'port': int(os.getenv('POSTGRESQL_PORT', '5432')),
+                'database': os.getenv('POSTGRESQL_DATABASE', 'background_agents'),
+                'user': os.getenv('POSTGRESQL_USER', 'postgres'),
+                'password': os.getenv('POSTGRESQL_PASSWORD', ''),
+                'pool_size': int(os.getenv('POSTGRESQL_POOL_SIZE', '10')),
+                'max_overflow': int(os.getenv('POSTGRESQL_MAX_OVERFLOW', '20'))
+            },
+            
+            # Agent configuration
+            'agents': {
+                'startup_delay': float(os.getenv('AGENT_STARTUP_DELAY', '2.0')),
+                'health_check_interval': int(os.getenv('HEALTH_CHECK_INTERVAL', '30')),
+                'recovery_attempts': int(os.getenv('RECOVERY_ATTEMPTS', '3')),
+                'recovery_delay': float(os.getenv('RECOVERY_DELAY', '5.0'))
+            },
+            
+            # Monitoring configuration
+            'monitoring': {
+                'heartbeat_interval': int(os.getenv('HEARTBEAT_INTERVAL', '60')),
+                'performance_interval': int(os.getenv('PERFORMANCE_INTERVAL', '120')),
+                'langsmith_interval': int(os.getenv('LANGSMITH_INTERVAL', '300')),
+                'ai_help_interval': int(os.getenv('AI_HELP_INTERVAL', '30'))
+            },
+            
+            # System configuration
+            'system': {
+                'graceful_shutdown_timeout': int(os.getenv('SHUTDOWN_TIMEOUT', '30')),
+                'startup_timeout': int(os.getenv('STARTUP_TIMEOUT', '60')),
+                'health_check_timeout': int(os.getenv('HEALTH_CHECK_TIMEOUT', '10'))
+            }
         }
         
-        logger.info("Background Agents Launcher initialized")
-    
-    async def initialize_system(self):
-        """Initialize the core system components."""
-        try:
-            logger.info("Initializing background agents system...")
-            
-            # Initialize shared state
-            self.shared_state = SharedState()
-            await self.shared_state.initialize()
-            
-            # Initialize system components
-            self.system_initializer = SystemInitializer(self.shared_state)
-            await self.system_initializer.initialize()
-            
-            # Initialize agent coordinator
-            self.agent_coordinator = AgentCoordinator(self.shared_state)
-            await self.agent_coordinator.initialize()
-            
-            # Log system initialization
-            await self.shared_state.log_system_event(
-                'system_initialized',
-                {
-                    'timestamp': datetime.now(timezone.utc).isoformat(),
-                    'launcher_pid': os.getpid(),
-                    'python_version': sys.version,
-                    'platform': sys.platform
-                },
-                severity='INFO'
-            )
-            
-            logger.info("System initialization completed successfully")
-            
-        except Exception as e:
-            logger.error(f"System initialization failed: {e}")
-            logger.error(traceback.format_exc())
-            raise
-    
-    async def create_agents(self):
-        """Create and configure all agents."""
-        try:
-            logger.info("Creating background agents...")
-            
-            # Agent configurations
-            agent_configs = {
-                'heartbeat_health_agent': {
-                    'class': HeartbeatHealthAgent,
-                    'enabled': os.getenv('HEARTBEAT_HEALTH_AGENT_ENABLED', 'true').lower() == 'true',
-                    'config': {
-                        'heartbeat_interval': 30,
-                        'max_retries': 5,
-                        'work_interval': 60
-                    }
-                },
-                'performance_monitor': {
-                    'class': PerformanceMonitor,
-                    'enabled': os.getenv('PERFORMANCE_MONITOR_ENABLED', 'true').lower() == 'true',
-                    'config': {
-                        'collection_interval': 60,
-                        'heartbeat_interval': 60,
-                        'max_retries': 3,
-                        'work_interval': 30
-                    }
-                },
-                'langsmith_bridge': {
-                    'class': LangSmithBridge,
-                    'enabled': os.getenv('LANGSMITH_BRIDGE_ENABLED', 'true').lower() == 'true',
-                    'config': {
-                        'api_key': os.getenv('LANGSMITH_API_KEY'),
-                        'project': os.getenv('LANGSMITH_PROJECT', 'background-agents-system'),
-                        'heartbeat_interval': 60,
-                        'max_retries': 3,
-                        'work_interval': 45
-                    }
-                },
-                'ai_help_agent': {
-                    'class': AIHelpAgent,
-                    'enabled': os.getenv('AI_HELP_AGENT_ENABLED', 'true').lower() == 'true',
-                    'config': {
-                        'model': os.getenv('OPENAI_MODEL', 'gpt-4'),
-                        'temperature': 0.7,
-                        'max_tokens': 2000,
-                        'heartbeat_interval': 60,
-                        'max_retries': 3,
-                        'work_interval': 30
-                    }
-                }
-            }
-            
-            # Create enabled agents
-            for agent_id, agent_info in agent_configs.items():
-                if agent_info['enabled']:
-                    try:
-                        agent_class = agent_info['class']
-                        agent_config = agent_info['config']
-                        
-                        # Create agent instance
-                        agent = agent_class(agent_id, self.shared_state, **agent_config)
-                        self.agents[agent_id] = agent
-                        
-                        # Register with coordinator
-                        await self.agent_coordinator.register_agent(agent)
-                        
-                        logger.info(f"Agent {agent_id} created and registered")
-                        
-                    except Exception as e:
-                        logger.error(f"Failed to create agent {agent_id}: {e}")
-                        # Continue with other agents
-                else:
-                    logger.info(f"Agent {agent_id} is disabled, skipping")
-            
-            logger.info(f"Created {len(self.agents)} agents successfully")
-            
-        except Exception as e:
-            logger.error(f"Agent creation failed: {e}")
-            logger.error(traceback.format_exc())
-            raise
-    
-    async def start_agents(self):
-        """Start all created agents."""
-        try:
-            logger.info("Starting background agents...")
-            
-            # Start agents through coordinator
-            startup_tasks = []
-            for agent_id, agent in self.agents.items():
-                task = asyncio.create_task(
-                    self._start_agent_with_retry(agent_id, agent)
-                )
-                startup_tasks.append(task)
-            
-            # Wait for all agents to start
-            results = await asyncio.gather(*startup_tasks, return_exceptions=True)
-            
-            # Check results
-            successful_starts = 0
-            for i, result in enumerate(results):
-                agent_id = list(self.agents.keys())[i]
-                if isinstance(result, Exception):
-                    logger.error(f"Failed to start agent {agent_id}: {result}")
-                else:
-                    successful_starts += 1
-                    logger.info(f"Agent {agent_id} started successfully")
-            
-            if successful_starts == 0:
-                raise RuntimeError("No agents started successfully")
-            
-            logger.info(f"Started {successful_starts}/{len(self.agents)} agents successfully")
-            
-            # Log system startup completion
-            await self.shared_state.log_system_event(
-                'system_startup_completed',
-                {
-                    'agents_started': successful_starts,
-                    'total_agents': len(self.agents),
-                    'startup_time': time.time()
-                },
-                severity='INFO'
-            )
-            
-        except Exception as e:
-            logger.error(f"Agent startup failed: {e}")
-            logger.error(traceback.format_exc())
-            raise
-    
-    async def _start_agent_with_retry(self, agent_id: str, agent, max_retries: int = 3):
-        """Start an agent with retry logic."""
-        for attempt in range(max_retries):
-            try:
-                await agent.start()
-                return True
-            except Exception as e:
-                logger.warning(f"Agent {agent_id} start attempt {attempt + 1} failed: {e}")
-                if attempt == max_retries - 1:
-                    raise
-                await asyncio.sleep(5 * (attempt + 1))  # Exponential backoff
-    
-    async def monitor_system(self):
-        """Monitor system health and manage agents."""
-        logger.info("Starting system monitoring...")
+        return config
         
-        while self.running and not self.shutdown_event.is_set():
-            try:
-                # Check system health
-                health_status = await self.shared_state.get_system_health()
-                
-                # Log health summary
-                logger.debug(f"System health: {health_status['health_percentage']:.1f}% "
-                           f"({health_status['healthy_agents']}/{health_status['active_agents']} agents healthy)")
-                
-                # Check for failed agents and restart if needed
-                await self._check_and_restart_failed_agents()
-                
-                # Wait for next monitoring cycle
-                try:
-                    await asyncio.wait_for(
-                        self.shutdown_event.wait(),
-                        timeout=self.config['health_check_interval']
-                    )
-                    break  # Shutdown requested
-                except asyncio.TimeoutError:
-                    continue  # Continue monitoring
-                    
-            except Exception as e:
-                logger.error(f"Error in system monitoring: {e}")
-                await asyncio.sleep(10)
-    
-    async def _check_and_restart_failed_agents(self):
-        """Check for failed agents and restart them."""
-        try:
-            agents_status = await self.shared_state.get_registered_agents()
-            
-            for agent_status in agents_status:
-                agent_id = agent_status['agent_id']
-                state = agent_status.get('state')
-                
-                if state == 'error' and agent_id in self.agents:
-                    logger.warning(f"Agent {agent_id} is in error state, attempting restart...")
-                    
-                    try:
-                        # Stop the failed agent
-                        await self.agents[agent_id].stop()
-                        
-                        # Wait a moment
-                        await asyncio.sleep(5)
-                        
-                        # Restart the agent
-                        await self.agents[agent_id].start()
-                        
-                        logger.info(f"Agent {agent_id} restarted successfully")
-                        
-                        # Log restart event
-                        await self.shared_state.log_system_event(
-                            'agent_restarted',
-                            {'agent_id': agent_id, 'reason': 'error_state'},
-                            agent_id=agent_id,
-                            severity='INFO'
-                        )
-                        
-                    except Exception as e:
-                        logger.error(f"Failed to restart agent {agent_id}: {e}")
-                        
-        except Exception as e:
-            logger.error(f"Error checking failed agents: {e}")
-    
-    async def shutdown_system(self):
-        """Gracefully shutdown the system."""
-        logger.info("Initiating system shutdown...")
+    def setup_signal_handlers(self) -> None:
+        """Setup signal handlers for graceful shutdown"""
         
-        try:
-            # Signal shutdown
-            self.running = False
-            self.shutdown_event.set()
-            
-            # Stop all agents
-            if self.agents:
-                logger.info("Stopping agents...")
-                stop_tasks = []
-                
-                for agent_id, agent in self.agents.items():
-                    task = asyncio.create_task(self._stop_agent_safely(agent_id, agent))
-                    stop_tasks.append(task)
-                
-                # Wait for all agents to stop
-                try:
-                    await asyncio.wait_for(
-                        asyncio.gather(*stop_tasks, return_exceptions=True),
-                        timeout=self.config['shutdown_timeout']
-                    )
-                except asyncio.TimeoutError:
-                    logger.warning("Some agents did not stop within timeout")
-            
-            # Stop coordinator
-            if self.agent_coordinator:
-                await self.agent_coordinator.shutdown()
-            
-            # Log shutdown event
-            if self.shared_state:
-                await self.shared_state.log_system_event(
-                    'system_shutdown',
-                    {
-                        'timestamp': datetime.now(timezone.utc).isoformat(),
-                        'agents_count': len(self.agents)
-                    },
-                    severity='INFO'
-                )
-                
-                # Close shared state
-                await self.shared_state.close()
-            
-            logger.info("System shutdown completed")
-            
-        except Exception as e:
-            logger.error(f"Error during shutdown: {e}")
-            logger.error(traceback.format_exc())
-    
-    async def _stop_agent_safely(self, agent_id: str, agent):
-        """Safely stop an agent with error handling."""
-        try:
-            await agent.stop()
-            logger.info(f"Agent {agent_id} stopped successfully")
-        except Exception as e:
-            logger.error(f"Error stopping agent {agent_id}: {e}")
-    
-    def setup_signal_handlers(self):
-        """Setup signal handlers for graceful shutdown."""
         def signal_handler(signum, frame):
-            logger.info(f"Received signal {signum}, initiating shutdown...")
-            asyncio.create_task(self.shutdown_system())
-        
+            self.logger.info(f"Received signal {signum}, initiating graceful shutdown...")
+            asyncio.create_task(self.shutdown())
+            
         signal.signal(signal.SIGINT, signal_handler)
         signal.signal(signal.SIGTERM, signal_handler)
         
-        # Windows doesn't have SIGUSR1
-        if hasattr(signal, 'SIGUSR1'):
-            signal.signal(signal.SIGUSR1, signal_handler)
-    
-    async def run(self):
-        """Main run method for the launcher."""
+    async def initialize_system(self) -> None:
+        """Initialize the complete system infrastructure"""
+        
+        self.logger.info("Initializing background agents system...")
+        
         try:
-            logger.info("Starting Background Agents System...")
+            # Initialize PostgreSQL adapter
+            self.logger.info("Initializing PostgreSQL adapter...")
+            connection_config = ConnectionConfig(
+                host=self.config['database']['host'],
+                port=self.config['database']['port'],
+                database=self.config['database']['database'],
+                user=self.config['database']['user'],
+                password=self.config['database']['password'],
+                pool_size=self.config['database']['pool_size'],
+                max_overflow=self.config['database']['max_overflow']
+            )
             
-            # Setup signal handlers
-            self.setup_signal_handlers()
+            self.postgresql_adapter = PostgreSQLAdapter(connection_config)
+            await self.postgresql_adapter.initialize()
             
-            # Initialize system
+            # Verify database health
+            health_check = await self.postgresql_adapter.health_check()
+            if health_check['status'] != 'healthy':
+                raise RuntimeError(f"PostgreSQL health check failed: {health_check}")
+                
+            self.logger.info("PostgreSQL adapter initialized successfully")
+            
+            # Initialize shared state
+            self.logger.info("Initializing shared state...")
+            self.shared_state = SharedState(self.postgresql_adapter)
+            await self.shared_state.initialize()
+            self.logger.info("Shared state initialized successfully")
+            
+            # Initialize system initializer
+            self.logger.info("Running system initialization...")
+            self.system_initializer = SystemInitializer(self.shared_state)
+            await self.system_initializer.initialize()
+            self.logger.info("System initialization completed")
+            
+            # Initialize agent coordinator
+            self.logger.info("Initializing agent coordinator...")
+            self.agent_coordinator = AgentCoordinator(self.shared_state)
+            await self.agent_coordinator.initialize()
+            self.logger.info("Agent coordinator initialized successfully")
+            
+            self.logger.info("System infrastructure initialization completed")
+            
+        except Exception as e:
+            self.logger.error(f"System initialization failed: {e}")
+            raise
+            
+    async def create_agents(self) -> None:
+        """Create and configure all agent instances"""
+        
+        self.logger.info("Creating agent instances...")
+        
+        try:
+            # Create HeartbeatHealthAgent
+            self.logger.info("Creating HeartbeatHealthAgent...")
+            heartbeat_agent = HeartbeatHealthAgent(
+                agent_id="heartbeat_health_agent",
+                shared_state=self.shared_state
+            )
+            heartbeat_agent.work_interval = self.config['monitoring']['heartbeat_interval']
+            self.agents['heartbeat_health_agent'] = heartbeat_agent
+            
+            # Create PerformanceMonitor
+            self.logger.info("Creating PerformanceMonitor...")
+            performance_monitor = PerformanceMonitor(
+                agent_id="performance_monitor",
+                shared_state=self.shared_state
+            )
+            performance_monitor.work_interval = self.config['monitoring']['performance_interval']
+            self.agents['performance_monitor'] = performance_monitor
+            
+            # Create LangSmithBridge
+            self.logger.info("Creating LangSmithBridge...")
+            langsmith_bridge = LangSmithBridge(
+                agent_id="langsmith_bridge",
+                shared_state=self.shared_state
+            )
+            langsmith_bridge.work_interval = self.config['monitoring']['langsmith_interval']
+            self.agents['langsmith_bridge'] = langsmith_bridge
+            
+            # Create AIHelpAgent
+            self.logger.info("Creating AIHelpAgent...")
+            ai_help_agent = AIHelpAgent(
+                agent_id="ai_help_agent",
+                shared_state=self.shared_state
+            )
+            ai_help_agent.work_interval = self.config['monitoring']['ai_help_interval']
+            self.agents['ai_help_agent'] = ai_help_agent
+            
+            self.logger.info(f"Created {len(self.agents)} agent instances successfully")
+            
+        except Exception as e:
+            self.logger.error(f"Agent creation failed: {e}")
+            raise
+            
+    async def start_agents(self) -> None:
+        """Start all agents with coordinated startup"""
+        
+        self.logger.info("Starting background agents...")
+        
+        try:
+            startup_order = [
+                'heartbeat_health_agent',
+                'performance_monitor',
+                'langsmith_bridge',
+                'ai_help_agent'
+            ]
+            
+            for agent_id in startup_order:
+                if agent_id in self.agents:
+                    self.logger.info(f"Starting {agent_id}...")
+                    
+                    try:
+                        # Register agent with coordinator
+                        await self.agent_coordinator.register_agent(self.agents[agent_id])
+                        
+                        # Start agent task
+                        task = asyncio.create_task(
+                            self.run_agent_with_recovery(agent_id)
+                        )
+                        self.agent_tasks[agent_id] = task
+                        
+                        # Delay between agent startups
+                        await asyncio.sleep(self.config['agents']['startup_delay'])
+                        
+                        self.logger.info(f"Agent {agent_id} started successfully")
+                        
+                    except Exception as e:
+                        self.logger.error(f"Failed to start agent {agent_id}: {e}")
+                        raise
+                        
+            self.logger.info(f"All {len(self.agent_tasks)} agents started successfully")
+            
+        except Exception as e:
+            self.logger.error(f"Agent startup failed: {e}")
+            raise
+            
+    async def run_agent_with_recovery(self, agent_id: str) -> None:
+        """Run agent with automatic recovery capabilities"""
+        
+        agent = self.agents[agent_id]
+        recovery_attempts = 0
+        max_attempts = self.config['agents']['recovery_attempts']
+        
+        while self.is_running and recovery_attempts <= max_attempts:
+            try:
+                self.logger.info(f"Starting agent {agent_id} (attempt {recovery_attempts + 1})")
+                
+                # Start the agent
+                await agent.start()
+                
+                # Reset recovery attempts on successful start
+                recovery_attempts = 0
+                
+                # Wait for agent to complete or system shutdown
+                await agent.wait_for_completion()
+                
+                if self.is_running:
+                    self.logger.warning(f"Agent {agent_id} stopped unexpectedly")
+                    
+            except Exception as e:
+                recovery_attempts += 1
+                self.logger.error(f"Agent {agent_id} failed (attempt {recovery_attempts}): {e}")
+                
+                if recovery_attempts <= max_attempts and self.is_running:
+                    self.logger.info(f"Attempting recovery for {agent_id} in {self.config['agents']['recovery_delay']} seconds...")
+                    await asyncio.sleep(self.config['agents']['recovery_delay'])
+                    
+                    # Notify coordinator of agent failure
+                    try:
+                        await self.agent_coordinator.handle_agent_failure(agent_id, str(e))
+                    except Exception as coord_error:
+                        self.logger.error(f"Failed to notify coordinator of agent failure: {coord_error}")
+                else:
+                    self.logger.error(f"Agent {agent_id} exceeded maximum recovery attempts")
+                    break
+                    
+        self.logger.info(f"Agent {agent_id} runner exiting")
+        
+    async def monitor_system_health(self) -> None:
+        """Monitor overall system health"""
+        
+        self.logger.info("Starting system health monitoring...")
+        
+        health_check_interval = self.config['agents']['health_check_interval']
+        
+        while self.is_running:
+            try:
+                # Get system health
+                health_data = await self.shared_state.get_system_health()
+                
+                # Log health summary
+                health_score = health_data.get('overall_health_score', 0)
+                active_agents = health_data.get('active_agents', 0)
+                total_agents = health_data.get('total_agents', 0)
+                
+                self.logger.info(
+                    f"System Health: {health_score:.1f}/100, "
+                    f"Agents: {active_agents}/{total_agents} active"
+                )
+                
+                # Check for system issues
+                if health_score < 70:
+                    self.logger.warning(f"System health degraded: {health_score:.1f}/100")
+                    
+                    # Log system health event
+                    await self.shared_state.log_system_event(
+                        'system_health_check',
+                        {
+                            'health_score': health_score,
+                            'active_agents': active_agents,
+                            'total_agents': total_agents,
+                            'status': 'degraded' if health_score < 70 else 'healthy'
+                        },
+                        severity='WARNING' if health_score < 70 else 'INFO'
+                    )
+                    
+                # Wait for next health check
+                await asyncio.sleep(health_check_interval)
+                
+            except Exception as e:
+                self.logger.error(f"System health monitoring error: {e}")
+                await asyncio.sleep(health_check_interval)
+                
+        self.logger.info("System health monitoring stopped")
+        
+    async def start(self) -> None:
+        """Start the complete background agents system"""
+        
+        try:
+            self.startup_time = datetime.now(timezone.utc)
+            self.logger.info("Starting Background Agents System...")
+            
+            # Initialize system infrastructure
             await self.initialize_system()
             
-            # Create agents
+            # Create agent instances
             await self.create_agents()
             
             # Start agents
             await self.start_agents()
             
             # Mark system as running
-            self.running = True
+            self.is_running = True
             
-            logger.info("Background Agents System is now running!")
-            logger.info(f"System PID: {os.getpid()}")
-            logger.info(f"Active agents: {list(self.agents.keys())}")
+            # Log successful startup
+            await self.shared_state.log_system_event(
+                'system_startup',
+                {
+                    'startup_time': self.startup_time.isoformat(),
+                    'agents_started': len(self.agents),
+                    'system_version': '1.0.0'
+                },
+                severity='INFO'
+            )
             
-            # Start monitoring
-            await self.monitor_system()
+            # Log business metric
+            await self.shared_state.log_business_metric(
+                'system_reliability',
+                'successful_startup',
+                1.0,
+                {'startup_duration': (datetime.now(timezone.utc) - self.startup_time).total_seconds()}
+            )
             
-        except KeyboardInterrupt:
-            logger.info("Keyboard interrupt received")
+            self.logger.info("Background Agents System started successfully")
+            
+            # Start system health monitoring
+            health_monitor_task = asyncio.create_task(self.monitor_system_health())
+            
+            # Wait for shutdown signal
+            await self.shutdown_event.wait()
+            
+            # Cancel health monitoring
+            health_monitor_task.cancel()
+            
         except Exception as e:
-            logger.error(f"System error: {e}")
-            logger.error(traceback.format_exc())
-        finally:
-            await self.shutdown_system()
+            self.logger.error(f"System startup failed: {e}")
+            raise
+            
+    async def shutdown(self) -> None:
+        """Gracefully shutdown the system"""
+        
+        if not self.is_running:
+            return
+            
+        self.logger.info("Initiating graceful system shutdown...")
+        shutdown_start = time.time()
+        
+        try:
+            # Mark system as shutting down
+            self.is_running = False
+            
+            # Log shutdown event
+            if self.shared_state:
+                await self.shared_state.log_system_event(
+                    'system_shutdown_start',
+                    {'shutdown_reason': 'graceful', 'uptime': self.get_uptime()},
+                    severity='INFO'
+                )
+            
+            # Stop agents gracefully
+            self.logger.info("Stopping agents...")
+            stop_tasks = []
+            
+            for agent_id, agent in self.agents.items():
+                self.logger.info(f"Stopping {agent_id}...")
+                stop_task = asyncio.create_task(agent.stop())
+                stop_tasks.append(stop_task)
+                
+            # Wait for agents to stop with timeout
+            try:
+                await asyncio.wait_for(
+                    asyncio.gather(*stop_tasks, return_exceptions=True),
+                    timeout=self.config['system']['graceful_shutdown_timeout']
+                )
+                self.logger.info("All agents stopped successfully")
+            except asyncio.TimeoutError:
+                self.logger.warning("Agent shutdown timeout exceeded")
+                
+            # Cancel any remaining agent tasks
+            for agent_id, task in self.agent_tasks.items():
+                if not task.done():
+                    self.logger.info(f"Cancelling task for {agent_id}")
+                    task.cancel()
+                    
+            # Stop coordinator
+            if self.agent_coordinator:
+                self.logger.info("Stopping agent coordinator...")
+                await self.agent_coordinator.stop()
+                
+            # Close shared state
+            if self.shared_state:
+                self.logger.info("Closing shared state...")
+                
+                # Log final shutdown event
+                await self.shared_state.log_system_event(
+                    'system_shutdown_complete',
+                    {
+                        'shutdown_duration': time.time() - shutdown_start,
+                        'uptime': self.get_uptime()
+                    },
+                    severity='INFO'
+                )
+                
+                # Log business metric
+                await self.shared_state.log_business_metric(
+                    'system_reliability',
+                    'graceful_shutdown',
+                    1.0,
+                    {'shutdown_duration': time.time() - shutdown_start}
+                )
+                
+                await self.shared_state.close()
+                
+            # Close PostgreSQL adapter
+            if self.postgresql_adapter:
+                self.logger.info("Closing PostgreSQL adapter...")
+                await self.postgresql_adapter.close()
+                
+            shutdown_duration = time.time() - shutdown_start
+            self.logger.info(f"System shutdown completed in {shutdown_duration:.2f} seconds")
+            
+            # Signal shutdown complete
+            self.shutdown_event.set()
+            
+        except Exception as e:
+            self.logger.error(f"Error during shutdown: {e}")
+            raise
+            
+    def get_uptime(self) -> float:
+        """Get system uptime in seconds"""
+        if self.startup_time:
+            return (datetime.now(timezone.utc) - self.startup_time).total_seconds()
+        return 0.0
+        
+    async def status(self) -> Dict[str, Any]:
+        """Get comprehensive system status"""
+        
+        try:
+            status_data = {
+                'system_running': self.is_running,
+                'startup_time': self.startup_time.isoformat() if self.startup_time else None,
+                'uptime_seconds': self.get_uptime(),
+                'agents_configured': len(self.agents),
+                'agent_tasks_running': len([t for t in self.agent_tasks.values() if not t.done()]),
+                'postgresql_connected': bool(self.postgresql_adapter and 
+                                           (await self.postgresql_adapter.health_check())['status'] == 'healthy'),
+                'system_health': await self.shared_state.get_system_health() if self.shared_state else None
+            }
+            
+            return status_data
+            
+        except Exception as e:
+            return {
+                'system_running': self.is_running,
+                'error': str(e),
+                'status': 'error'
+            }
 
-def create_directories():
-    """Create necessary directories."""
-    directories = ['logs', 'data', 'temp', 'backups']
-    for directory in directories:
-        os.makedirs(directory, exist_ok=True)
-
-def check_environment():
-    """Check environment prerequisites."""
-    required_vars = ['DB_HOST', 'DB_NAME', 'DB_USER']
-    missing_vars = []
-    
-    for var in required_vars:
-        if not os.getenv(var):
-            missing_vars.append(var)
-    
-    if missing_vars:
-        logger.error(f"Missing required environment variables: {missing_vars}")
-        logger.error("Please set up your environment variables. See config_template.env for reference.")
-        return False
-    
-    return True
 
 async def main():
-    """Main entry point."""
-    print("=" * 60)
-    print("Background Agents System Launcher")
-    print("PostgreSQL-based Agent Coordination & Monitoring")
-    print("=" * 60)
+    """Main entry point for the background agents launcher"""
     
-    # Create directories
-    create_directories()
-    
-    # Check environment
-    if not check_environment():
-        sys.exit(1)
-    
-    # Create and run launcher
     launcher = BackgroundAgentsLauncher()
     
     try:
-        await launcher.run()
+        # Start the system
+        await launcher.start()
+        
+    except KeyboardInterrupt:
+        launcher.logger.info("Received keyboard interrupt")
     except Exception as e:
-        logger.error(f"Launcher failed: {e}")
+        launcher.logger.error(f"System error: {e}")
         sys.exit(1)
+    finally:
+        # Ensure clean shutdown
+        await launcher.shutdown()
+
 
 if __name__ == "__main__":
-    # Run the async main function
-    try:
-        asyncio.run(main())
-    except KeyboardInterrupt:
-        print("\nShutdown complete.")
-    except Exception as e:
-        print(f"Fatal error: {e}")
-        sys.exit(1) 
+    # Check for environment file
+    env_file = Path(".env")
+    if env_file.exists():
+        # Load environment variables from .env file
+        import subprocess
+        try:
+            subprocess.run(["python", "-c", "import dotenv; dotenv.load_dotenv()"], check=True)
+        except:
+            pass  # Continue without dotenv if not available
+            
+    # Run the main function
+    asyncio.run(main()) 
