@@ -1,0 +1,69 @@
+# Environment variables
+.env
+
+# Database files (CRITICAL - prevents large file issues)
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+shared_state*.db*
+chroma.sqlite3
+
+# Data directories
+data/
+D:/DATA/
+**/data/
+
+# Logs
+*.log
+logs/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+*.so
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+ENV/
+
+# IDE specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Project specific
+client_embeddings/
+*.msg
+*.pdf
+*.txt
+!requirements.txt
+!*.md 
