@@ -89,32 +89,32 @@ class PostgreSQLEnvironmentSetup:
         # Database host
         default_host = "localhost"
         host = input(f"PostgreSQL host [{default_host}]: ").strip()
-        self.config['DB_HOST'] = host or default_host
+        self.config['POSTGRESQL_HOST'] = host or default_host
         
         # Database port
         default_port = "5432"
         port = input(f"PostgreSQL port [{default_port}]: ").strip()
-        self.config['DB_PORT'] = port or default_port
+        self.config['POSTGRESQL_PORT'] = port or default_port
         
         # Database name
         default_db = "background_agents"
         db_name = input(f"Database name [{default_db}]: ").strip()
-        self.config['DB_NAME'] = db_name or default_db
+        self.config['POSTGRESQL_DB'] = db_name or default_db
         
         # Database user
         default_user = "postgres"
         user = input(f"Database user [{default_user}]: ").strip()
-        self.config['DB_USER'] = user or default_user
+        self.config['POSTGRESQL_USER'] = user or default_user
         
         # Database password
         password = getpass.getpass("Database password: ")
-        self.config['DB_PASSWORD'] = password
+        self.config['POSTGRESQL_PASSWORD'] = password
         
         # SSL mode
         print("\nSSL Mode options: disable, allow, prefer, require, verify-ca, verify-full")
         default_ssl = "prefer"
         ssl_mode = input(f"SSL mode [{default_ssl}]: ").strip()
-        self.config['DB_SSL_MODE'] = ssl_mode or default_ssl
+        self.config['POSTGRESQL_SSL_MODE'] = ssl_mode or default_ssl
     
     def test_database_connection(self):
         """Test database connection."""
@@ -124,11 +124,11 @@ class PostgreSQLEnvironmentSetup:
             import psycopg2
             
             conn_string = (
-                f"host={self.config['DB_HOST']} "
-                f"port={self.config['DB_PORT']} "
-                f"user={self.config['DB_USER']} "
-                f"password={self.config['DB_PASSWORD']} "
-                f"sslmode={self.config['DB_SSL_MODE']}"
+                f"host={self.config['POSTGRESQL_HOST']} "
+                f"port={self.config['POSTGRESQL_PORT']} "
+                f"user={self.config['POSTGRESQL_USER']} "
+                f"password={self.config['POSTGRESQL_PASSWORD']} "
+                f"sslmode={self.config['POSTGRESQL_SSL_MODE']}"
             )
             
             # Test connection to default database first
@@ -144,7 +144,7 @@ class PostgreSQLEnvironmentSetup:
     
     def create_database(self):
         """Create the database if it doesn't exist."""
-        print(f"\nCreating database '{self.config['DB_NAME']}'...")
+        print(f"\nCreating database '{self.config['POSTGRESQL_DB']}'...")
         
         try:
             import psycopg2
@@ -152,11 +152,11 @@ class PostgreSQLEnvironmentSetup:
             
             # Connect to default database
             conn_string = (
-                f"host={self.config['DB_HOST']} "
-                f"port={self.config['DB_PORT']} "
-                f"user={self.config['DB_USER']} "
-                f"password={self.config['DB_PASSWORD']} "
-                f"sslmode={self.config['DB_SSL_MODE']} "
+                f"host={self.config['POSTGRESQL_HOST']} "
+                f"port={self.config['POSTGRESQL_PORT']} "
+                f"user={self.config['POSTGRESQL_USER']} "
+                f"password={self.config['POSTGRESQL_PASSWORD']} "
+                f"sslmode={self.config['POSTGRESQL_SSL_MODE']} "
                 f"dbname=postgres"
             )
             
@@ -167,15 +167,15 @@ class PostgreSQLEnvironmentSetup:
             # Check if database exists
             cursor.execute(
                 "SELECT 1 FROM pg_database WHERE datname = %s",
-                (self.config['DB_NAME'],)
+                (self.config['POSTGRESQL_DB'],)
             )
             
             if cursor.fetchone():
-                print(f"✅ Database '{self.config['DB_NAME']}' already exists")
+                print(f"✅ Database '{self.config['POSTGRESQL_DB']}' already exists")
             else:
                 # Create database
-                cursor.execute(f'CREATE DATABASE "{self.config["DB_NAME"]}"')
-                print(f"✅ Database '{self.config['DB_NAME']}' created successfully")
+                cursor.execute(f'CREATE DATABASE "{self.config["POSTGRESQL_DB"]}"')
+                print(f"✅ Database '{self.config['POSTGRESQL_DB']}' created successfully")
             
             cursor.close()
             conn.close()
@@ -344,12 +344,12 @@ ON CONFLICT (key) DO NOTHING;
             import psycopg2
             
             conn_string = (
-                f"host={self.config['DB_HOST']} "
-                f"port={self.config['DB_PORT']} "
-                f"user={self.config['DB_USER']} "
-                f"password={self.config['DB_PASSWORD']} "
-                f"sslmode={self.config['DB_SSL_MODE']} "
-                f"dbname={self.config['DB_NAME']}"
+                f"host={self.config['POSTGRESQL_HOST']} "
+                f"port={self.config['POSTGRESQL_PORT']} "
+                f"user={self.config['POSTGRESQL_USER']} "
+                f"password={self.config['POSTGRESQL_PASSWORD']} "
+                f"sslmode={self.config['POSTGRESQL_SSL_MODE']} "
+                f"dbname={self.config['POSTGRESQL_DB']}"
             )
             
             conn = psycopg2.connect(conn_string)
@@ -446,7 +446,7 @@ ON CONFLICT (key) DO NOTHING;
                 
                 # Database configuration
                 f.write("# Database Configuration\n")
-                db_vars = ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_SSL_MODE']
+                db_vars = ['POSTGRESQL_HOST', 'POSTGRESQL_PORT', 'POSTGRESQL_DB', 'POSTGRESQL_USER', 'POSTGRESQL_PASSWORD', 'POSTGRESQL_SSL_MODE']
                 for var in db_vars:
                     f.write(f"{var}={self.config[var]}\n")
                 
@@ -531,10 +531,10 @@ ON CONFLICT (key) DO NOTHING;
         print(f"  - {self.env_file_path}")
         print()
         print("Database connection details:")
-        print(f"  Host: {self.config['DB_HOST']}")
-        print(f"  Port: {self.config['DB_PORT']}")
-        print(f"  Database: {self.config['DB_NAME']}")
-        print(f"  User: {self.config['DB_USER']}")
+        print(f"  Host: {self.config['POSTGRESQL_HOST']}")
+        print(f"  Port: {self.config['POSTGRESQL_PORT']}")
+        print(f"  Database: {self.config['POSTGRESQL_DB']}")
+        print(f"  User: {self.config['POSTGRESQL_USER']}")
         print()
         print("For support, please refer to the documentation or")
         print("create an issue in the repository.")

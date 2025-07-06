@@ -1,21 +1,22 @@
 """
-Coordination Package
+Background Agents Coordination Package
 
-Contains core coordination and management components for the background agents system.
-Provides PostgreSQL-based shared state, agent lifecycle management, and system coordination.
+PostgreSQL-based agent coordination and state management.
 """
 
-from .agent_coordinator import AgentCoordinator
-from .shared_state import SharedState
-from .base_agent import BaseAgent, AgentState
 from .postgresql_adapter import PostgreSQLAdapter
+from .shared_state import SharedState
+from .base_agent import BaseAgent, AgentMetrics
+from .agent_coordinator import AgentCoordinator
 from .system_initializer import SystemInitializer
 
 __all__ = [
-    'AgentCoordinator',
+    'PostgreSQLAdapter',
     'SharedState',
     'BaseAgent', 
-    'AgentState',
-    'PostgreSQLAdapter',
+    'AgentMetrics',
+    'AgentCoordinator',
     'SystemInitializer'
-] 
+]
+
+__version__ = '1.0.0' 

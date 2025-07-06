@@ -1,19 +1,22 @@
 """
-Background Agents Package
+Background Agents System
 
-This package contains all the background agents for the monitoring system.
-Provides infrastructure for PostgreSQL-based agent coordination, monitoring,
-and AI-powered system management.
+PostgreSQL-based multi-agent monitoring and coordination platform.
 """
 
-from .coordination.agent_coordinator import AgentCoordinator
+from .coordination.postgresql_adapter import PostgreSQLAdapter
 from .coordination.shared_state import SharedState
-from .coordination.base_agent import BaseAgent, AgentState
+from .coordination.base_agent import BaseAgent, AgentMetrics
+from .coordination.agent_coordinator import AgentCoordinator
+from .coordination.system_initializer import SystemInitializer
 
-__version__ = "1.0.0"
 __all__ = [
-    'AgentCoordinator',
+    'PostgreSQLAdapter',
     'SharedState', 
     'BaseAgent',
-    'AgentState'
-] 
+    'AgentMetrics',
+    'AgentCoordinator',
+    'SystemInitializer'
+]
+
+__version__ = '1.0.0' 

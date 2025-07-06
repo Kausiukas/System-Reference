@@ -116,7 +116,7 @@ class PostgreSQLMigrationTester:
         """Test 1: Environment Validation"""
         try:
             required_vars = [
-                'DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD'
+                'POSTGRESQL_HOST', 'POSTGRESQL_PORT', 'POSTGRESQL_DB', 'POSTGRESQL_USER', 'POSTGRESQL_PASSWORD'
             ]
             
             missing_vars = []

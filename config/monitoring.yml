@@ -11,17 +11,17 @@ system:
 # Database Configuration
 database:
   type: "postgresql"
-  host: "${DB_HOST:-localhost}"
-  port: "${DB_PORT:-5432}"
-  name: "${DB_NAME:-background_agents}"
-  user: "${DB_USER:-postgres}"
-  ssl_mode: "${DB_SSL_MODE:-prefer}"
+  host: "${POSTGRESQL_HOST:-localhost}"
+  port: "${POSTGRESQL_PORT:-5432}"
+  name: "${POSTGRESQL_DB:-background_agents}"
+  user: "${POSTGRESQL_USER:-postgres}"
+  ssl_mode: "${POSTGRESQL_SSL_MODE:-prefer}"
   
   # Connection Pool Settings
   pool:
-    min_size: "${DB_POOL_MIN_SIZE:-5}"
-    max_size: "${DB_POOL_MAX_SIZE:-20}"
-    timeout: "${DB_TIMEOUT:-30}"
+    min_size: "${POSTGRESQL_POOL_MIN_SIZE:-5}"
+    max_size: "${POSTGRESQL_POOL_MAX_SIZE:-20}"
+    timeout: "${POSTGRESQL_TIMEOUT:-30}"
     
   # Performance Settings
   performance:
@@ -360,7 +360,7 @@ development:
   # Testing
   testing:
     enabled: "${TEST_MODE:-false}"
-    test_database: "${TEST_DB_NAME:-background_agents_test}"
+    test_database: "${POSTGRESQL_TEST_DB:-background_agents_test}"
 
 # External Integrations
 integrations:
