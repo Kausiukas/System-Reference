@@ -13,7 +13,7 @@ database:
   type: "postgresql"
   host: "${POSTGRESQL_HOST:-localhost}"
   port: "${POSTGRESQL_PORT:-5432}"
-      name: "${POSTGRESQL_DATABASE:-background_agents}"
+  name: "${POSTGRESQL_DATABASE:-background_agents}"
   user: "${POSTGRESQL_USER:-postgres}"
   ssl_mode: "${POSTGRESQL_SSL_MODE:-prefer}"
   

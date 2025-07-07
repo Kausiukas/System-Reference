@@ -67,14 +67,14 @@ class PostgreSQLAdapter:
     def _load_config_from_env(self) -> ConnectionConfig:
         """Load configuration from environment variables"""
         return ConnectionConfig(
-            host=os.getenv('POSTGRES_HOST', 'localhost'),
-            port=int(os.getenv('POSTGRES_PORT', 5432)),
-            database=os.getenv('POSTGRES_DB', 'agent_system'),
-            user=os.getenv('POSTGRES_USER', 'postgres'),
-            password=os.getenv('POSTGRES_PASSWORD', ''),
-            min_connections=int(os.getenv('POSTGRES_MIN_CONNECTIONS', 5)),
-            max_connections=int(os.getenv('POSTGRES_MAX_CONNECTIONS', 20)),
-            command_timeout=int(os.getenv('POSTGRES_COMMAND_TIMEOUT', 60)),
+            host=os.getenv('POSTGRESQL_HOST', 'localhost'),
+            port=int(os.getenv('POSTGRESQL_PORT', 5432)),
+            database=os.getenv('POSTGRESQL_DATABASE', 'background_agents'),
+            user=os.getenv('POSTGRESQL_USER', 'postgres'),
+            password=os.getenv('POSTGRESQL_PASSWORD', ''),
+            min_connections=int(os.getenv('POSTGRESQL_POOL_SIZE', 10)) // 2,
+            max_connections=int(os.getenv('POSTGRESQL_POOL_SIZE', 10)),
+            command_timeout=int(os.getenv('POSTGRESQL_TIMEOUT', 60)),
             server_settings={
                 'application_name': 'background_agents_system',
                 'search_path': 'public',

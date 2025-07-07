@@ -21,10 +21,10 @@ Successfully migrated the background agents system from SQLite to PostgreSQL for
 
 ## 📋 Migration Steps Completed
 
-### Phase 1: Environment Setup ✅
+### Phase 1: Database Setup ✅
 - [x] PostgreSQL database installation and configuration
 - [x] Environment variables configuration (`config_template.env`)
-- [x] Database schema creation (`setup_postgresql_schema.sql`)
+- [x] Database schema creation (`config/postgresql/schema.sql`)
 - [x] Connection testing and validation
 
 ### Phase 2: Core Infrastructure ✅
@@ -112,14 +112,11 @@ Successfully migrated the background agents system from SQLite to PostgreSQL for
 - **`env.example`** - Example environment file
 
 ### Database Configuration
-- **`setup_postgresql_schema.sql`** - Database schema creation
-- **`migrate_to_timestamptz.sql`** - Timestamp migration
-- **`fix_postgresql_triggers.sql`** - Database triggers
+- **`config/postgresql/schema.sql`** - Database schema creation
+- **`config/postgresql/indexes.sql`** - Database indexes optimization
 
 ### Setup Scripts
-- **`setup_postgresql_environment.py`** - Interactive PostgreSQL setup (500+ lines)
-- **`setup_postgresql_database.py`** - Database initialization
-- **`postgresql_setup_simple.py`** - Simplified setup process
+- **`setup_postgresql_environment.py`** - Interactive PostgreSQL setup (600+ lines)
 
 ---
 
@@ -204,11 +201,13 @@ config/
     ├── schema.sql
     └── indexes.sql
 
-docs/
+# Documentation files (in repository root)
 ├── shared_state_database_psql.md
 ├── live_test.md
-├── repository_completion_checklist.md
-└── migration_summary.md
+├── MIGRATION_SUMMARY.md
+├── PERFORMANCE_MONITORING.md
+├── README.md
+└── TODO.md
 ```
 
 ---

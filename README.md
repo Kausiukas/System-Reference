@@ -111,11 +111,17 @@ config/
 └── postgresql/
     └── schema.sql              # Database schema definitions
 
-docs/
+# Documentation files (in repository root)
 ├── shared_state_database_psql.md    # Complete database documentation
 ├── live_test.md                     # 60-minute testing framework
 ├── MIGRATION_SUMMARY.md             # Migration procedures and results
-└── PERFORMANCE_MONITORING.md       # Performance optimization guide
+├── PERFORMANCE_MONITORING.md       # Performance optimization guide
+├── README.md                        # This file
+├── TODO.md                          # Development roadmap
+├── agents.md                        # Agent architecture guide
+├── heartbeat_agent.md              # Heartbeat system documentation
+├── AI_help.md                      # AI help system guide
+└── langsmith_bridge.md             # LangSmith integration guide
 
 setup & testing/
 ├── setup_postgresql_environment.py  # Interactive PostgreSQL setup
@@ -289,7 +295,7 @@ python -c "from background_agents.coordination.shared_state import SharedState; 
 ```
 
 ### Support Resources
-- **Documentation**: Complete guides in `docs/` directory
+- **Documentation**: Complete guides in repository root directory
 - **Test Suite**: Comprehensive validation in `test_postgresql_migration.py`
 - **Live Testing**: 60-minute validation framework in `live_test.md`
 - **Migration Guide**: Step-by-step procedures in `MIGRATION_SUMMARY.md`
