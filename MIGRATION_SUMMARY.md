@@ -92,15 +92,10 @@ Successfully migrated the background agents system from SQLite to PostgreSQL for
   - Comprehensive documentation
 
 ### Phase 6: Documentation ✅
-- [x] **Database Documentation** (`shared_state_database_psql.md`)
+- [x] **Documentation** (`shared_state_database_psql.md`)
   - Complete schema documentation
   - Performance optimization guide
   - Monitoring and maintenance procedures
-
-- [x] **Repository Analysis** 
-  - `repository_completion_checklist.md`
-  - `repository_blind_spots_analysis.md`
-  - `required_files_for_live_test.md`
 
 ---
 
@@ -223,7 +218,7 @@ python background_agents_dashboard.py
 tail -f logs/performance_monitor.log
 
 # Verify database health
-python quick_db_check.py
+python validate_system_readiness.py
 ```
 
 ### Weekly Maintenance
@@ -241,14 +236,14 @@ DELETE FROM agent_heartbeats WHERE timestamp < NOW() - INTERVAL '30 days';
 
 ### Emergency Procedures
 ```bash
-# Emergency database recovery
-python emergency_database_recovery.py
+# System health check
+python validate_system_readiness.py
 
-# Restart all agents
-python restart_agents_properly.py
+# Restart system components
+python launch_background_agents.py
 
-# Force database unlock
-python force_unlock_database.py
+# Check logs for issues
+tail -f logs/system.log
 ```
 
 ---
