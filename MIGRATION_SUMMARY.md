@@ -109,7 +109,7 @@ Successfully migrated the background agents system from SQLite to PostgreSQL for
 ### Environment Configuration
 - **`config_template.env`** - Complete environment template (120+ variables)
 - **`config/monitoring.yml`** - Monitoring configuration (250+ lines)
-- **`.env.example`** - Example environment file
+- **`env.example`** - Example environment file
 
 ### Database Configuration
 - **`setup_postgresql_schema.sql`** - Database schema creation

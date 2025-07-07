@@ -32,7 +32,6 @@ class PostgreSQLEnvironmentSetup:
         """Initialize the setup script."""
         self.config = {}
         self.env_file_path = ".env"
-        self.schema_file_path = "setup_postgresql_schema.sql"
         
     def print_banner(self):
         """Print setup banner."""
@@ -99,7 +98,7 @@ class PostgreSQLEnvironmentSetup:
         # Database name
         default_db = "background_agents"
         db_name = input(f"Database name [{default_db}]: ").strip()
-        self.config['POSTGRESQL_DB'] = db_name or default_db
+        self.config['POSTGRESQL_DATABASE'] = db_name or default_db
         
         # Database user
         default_user = "postgres"
@@ -144,7 +143,7 @@ class PostgreSQLEnvironmentSetup:
     
     def create_database(self):
         """Create the database if it doesn't exist."""
-        print(f"\nCreating database '{self.config['POSTGRESQL_DB']}'...")
+        print(f"\nCreating database '{self.config['POSTGRESQL_DATABASE']}'...")
         
         try:
             import psycopg2
@@ -167,15 +166,15 @@ class PostgreSQLEnvironmentSetup:
             # Check if database exists
             cursor.execute(
                 "SELECT 1 FROM pg_database WHERE datname = %s",
-                (self.config['POSTGRESQL_DB'],)
+                (self.config['POSTGRESQL_DATABASE'],)
             )
             
             if cursor.fetchone():
-                print(f"✅ Database '{self.config['POSTGRESQL_DB']}' already exists")
+                print(f"✅ Database '{self.config['POSTGRESQL_DATABASE']}' already exists")
             else:
                 # Create database
-                cursor.execute(f'CREATE DATABASE "{self.config["POSTGRESQL_DB"]}"')
-                print(f"✅ Database '{self.config['POSTGRESQL_DB']}' created successfully")
+                cursor.execute(f'CREATE DATABASE "{self.config["POSTGRESQL_DATABASE"]}"')
+                print(f"✅ Database '{self.config['POSTGRESQL_DATABASE']}' created successfully")
             
             cursor.close()
             conn.close()
@@ -349,7 +348,7 @@ ON CONFLICT (key) DO NOTHING;
                 f"user={self.config['POSTGRESQL_USER']} "
                 f"password={self.config['POSTGRESQL_PASSWORD']} "
                 f"sslmode={self.config['POSTGRESQL_SSL_MODE']} "
-                f"dbname={self.config['POSTGRESQL_DB']}"
+                f"dbname={self.config['POSTGRESQL_DATABASE']}"
             )
             
             conn = psycopg2.connect(conn_string)
@@ -446,7 +445,7 @@ ON CONFLICT (key) DO NOTHING;
                 
                 # Database configuration
                 f.write("# Database Configuration\n")
-                db_vars = ['POSTGRESQL_HOST', 'POSTGRESQL_PORT', 'POSTGRESQL_DB', 'POSTGRESQL_USER', 'POSTGRESQL_PASSWORD', 'POSTGRESQL_SSL_MODE']
+                db_vars = ['POSTGRESQL_HOST', 'POSTGRESQL_PORT', 'POSTGRESQL_DATABASE', 'POSTGRESQL_USER', 'POSTGRESQL_PASSWORD', 'POSTGRESQL_SSL_MODE']
                 for var in db_vars:
                     f.write(f"{var}={self.config[var]}\n")
                 
@@ -533,7 +532,7 @@ ON CONFLICT (key) DO NOTHING;
         print("Database connection details:")
         print(f"  Host: {self.config['POSTGRESQL_HOST']}")
         print(f"  Port: {self.config['POSTGRESQL_PORT']}")
-        print(f"  Database: {self.config['POSTGRESQL_DB']}")
+        print(f"  Database: {self.config['POSTGRESQL_DATABASE']}")
         print(f"  User: {self.config['POSTGRESQL_USER']}")
         print()
         print("For support, please refer to the documentation or")

@@ -335,16 +335,15 @@ class MyAgent(BaseAgent):
 ### Environment Setup
 ```bash
 # PostgreSQL Configuration
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=background_agents
-DB_USER=bg_agents_user
-DB_PASSWORD=secure_password
+POSTGRESQL_HOST=localhost
+POSTGRESQL_PORT=5432
+POSTGRESQL_DATABASE=background_agents
+POSTGRESQL_USER=bg_agents_user
+POSTGRESQL_PASSWORD=secure_password
 
 # Connection Pool Settings
-DB_POOL_MIN_SIZE=5
-DB_POOL_MAX_SIZE=20
-DB_TIMEOUT=30
+POSTGRESQL_POOL_SIZE=10
+POSTGRESQL_TIMEOUT=30
 
 # Agent Settings
 DEFAULT_HEARTBEAT_INTERVAL=60

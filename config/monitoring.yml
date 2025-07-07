@@ -13,14 +13,13 @@ database:
   type: "postgresql"
   host: "${POSTGRESQL_HOST:-localhost}"
   port: "${POSTGRESQL_PORT:-5432}"
-  name: "${POSTGRESQL_DB:-background_agents}"
+      name: "${POSTGRESQL_DATABASE:-background_agents}"
   user: "${POSTGRESQL_USER:-postgres}"
   ssl_mode: "${POSTGRESQL_SSL_MODE:-prefer}"
   
   # Connection Pool Settings
   pool:
-    min_size: "${POSTGRESQL_POOL_MIN_SIZE:-5}"
-    max_size: "${POSTGRESQL_POOL_MAX_SIZE:-20}"
+    size: "${POSTGRESQL_POOL_SIZE:-10}"
     timeout: "${POSTGRESQL_TIMEOUT:-30}"
     
   # Performance Settings

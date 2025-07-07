@@ -92,7 +92,7 @@ def check_environment_variables():
     required_env_vars = [
         'POSTGRESQL_HOST',
         'POSTGRESQL_PORT', 
-        'POSTGRESQL_DB',
+        'POSTGRESQL_DATABASE',
         'POSTGRESQL_USER'
     ]
     
@@ -181,7 +181,7 @@ async def check_database_connection():
         connection_config = ConnectionConfig(
             host=os.getenv('POSTGRESQL_HOST', 'localhost'),
             port=int(os.getenv('POSTGRESQL_PORT', '5432')),
-            database=os.getenv('POSTGRESQL_DB', 'background_agents'),
+            database=os.getenv('POSTGRESQL_DATABASE', 'background_agents'),
             user=os.getenv('POSTGRESQL_USER', 'postgres'),
             password=os.getenv('POSTGRESQL_PASSWORD', ''),
             pool_size=2,
@@ -219,7 +219,7 @@ async def check_system_components():
         connection_config = ConnectionConfig(
             host=os.getenv('POSTGRESQL_HOST', 'localhost'),
             port=int(os.getenv('POSTGRESQL_PORT', '5432')),
-            database=os.getenv('POSTGRESQL_DB', 'background_agents'),
+            database=os.getenv('POSTGRESQL_DATABASE', 'background_agents'),
             user=os.getenv('POSTGRESQL_USER', 'postgres'),
             password=os.getenv('POSTGRESQL_PASSWORD', ''),
             pool_size=2,
