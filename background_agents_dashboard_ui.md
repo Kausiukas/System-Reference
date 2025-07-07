@@ -74,4 +74,4 @@ graph TD
         C1 --> C1.3["1.2.3 Agent Status"];
         C1 --> C1.4["1.2.4 System Info"];
     end
-``` 
+```
