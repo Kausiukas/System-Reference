@@ -146,15 +146,15 @@ class BackgroundAgentsLauncher:
         try:
             # Initialize PostgreSQL adapter
             self.logger.info("Initializing PostgreSQL adapter...")
-            connection_config = ConnectionConfig(
-                host=self.config['database']['host'],
-                port=self.config['database']['port'],
-                database=self.config['database']['database'],
-                user=self.config['database']['user'],
-                password=self.config['database']['password'],
-                pool_size=self.config['database']['pool_size'],
-                max_overflow=self.config['database']['max_overflow']
-            )
+                    connection_config = ConnectionConfig(
+            host=self.config['database']['host'],
+            port=self.config['database']['port'],
+            database=self.config['database']['database'],
+            user=self.config['database']['user'],
+            password=self.config['database']['password'],
+            min_connections=self.config['database']['pool_size'] // 2,
+            max_connections=self.config['database']['pool_size']
+        )
             
             self.postgresql_adapter = PostgreSQLAdapter(connection_config)
             await self.postgresql_adapter.initialize()

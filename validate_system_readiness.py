@@ -184,8 +184,8 @@ async def check_database_connection():
             database=os.getenv('POSTGRESQL_DATABASE', 'background_agents'),
             user=os.getenv('POSTGRESQL_USER', 'postgres'),
             password=os.getenv('POSTGRESQL_PASSWORD', ''),
-            pool_size=2,
-            max_overflow=5
+            min_connections=2,
+            max_connections=5
         )
         
         adapter = PostgreSQLAdapter(connection_config)
@@ -222,8 +222,8 @@ async def check_system_components():
             database=os.getenv('POSTGRESQL_DATABASE', 'background_agents'),
             user=os.getenv('POSTGRESQL_USER', 'postgres'),
             password=os.getenv('POSTGRESQL_PASSWORD', ''),
-            pool_size=2,
-            max_overflow=5
+            min_connections=2,
+            max_connections=5
         )
         
         adapter = PostgreSQLAdapter(connection_config)

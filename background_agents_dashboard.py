@@ -39,15 +39,15 @@ class DashboardDataProvider:
             
         try:
             # Initialize PostgreSQL adapter
-            connection_config = ConnectionConfig(
-                host=os.getenv('POSTGRESQL_HOST', 'localhost'),
-                port=int(os.getenv('POSTGRESQL_PORT', '5432')),
-                database=os.getenv('POSTGRESQL_DATABASE', 'background_agents'),
-                user=os.getenv('POSTGRESQL_USER', 'postgres'),
-                password=os.getenv('POSTGRESQL_PASSWORD', ''),
-                pool_size=5,
-                max_overflow=10
-            )
+                connection_config = ConnectionConfig(
+        host=os.getenv('POSTGRESQL_HOST', 'localhost'),
+        port=int(os.getenv('POSTGRESQL_PORT', '5432')),
+        database=os.getenv('POSTGRESQL_DATABASE', 'background_agents'),
+        user=os.getenv('POSTGRESQL_USER', 'postgres'),
+        password=os.getenv('POSTGRESQL_PASSWORD', ''),
+        min_connections=5,
+        max_connections=10
+    )
             
             self.postgresql_adapter = PostgreSQLAdapter(connection_config)
             await self.postgresql_adapter.initialize()
