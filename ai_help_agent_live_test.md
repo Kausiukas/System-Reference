@@ -138,27 +138,27 @@ graph LR
 
 ```mermaid
 graph TB
-    subgraph "SystemContextIntegrator Architecture"
-        subgraph "📊 Data Sources"
-            DS1[System Status\nAgents, health, uptime]
-            DS2[Agent Performance\nMetrics, processing times]
-            DS3[Recent Events\nLast 10 system events]
-            DS4[Performance Metrics\nCPU, memory, response times]
-            DS5[Business Context\nCost, efficiency, satisfaction]
+    subgraph SystemContextIntegrator_Architecture
+        subgraph Data_Sources
+            DS1[System Status: Agents, health, uptime]
+            DS2[Agent Performance: Metrics, processing times]
+            DS3[Recent Events: Last 10 system events]
+            DS4[Performance Metrics: CPU, memory, response times]
+            DS5[Business Context: Cost, efficiency, satisfaction]
         end
-        
-        subgraph "🔄 Processing Functions"
-            PF1[gather_system_context()\nMain orchestration function]
-            PF2[get_system_status()\nAgent count and health]
-            PF3[get_agent_performance_context()\nPerformance aggregation]
-            PF4[get_recent_system_events()\nEvent filtering and summarization]
-            PF5[categorize_query()\nQuery type classification]
+
+        subgraph Processing_Functions
+            PF1[gather_system_context - Main orchestrator]
+            PF2[get_system_status - Agent count and health]
+            PF3[get_agent_performance_context - Performance aggregation]
+            PF4[get_recent_system_events - Event summary]
+            PF5[categorize_query - Classify query type]
         end
-        
-        subgraph "📤 Output Context"
-            OC1[Comprehensive Context Dict\nAll system data for AI response]
-            OC2[Query Classification\ntroubleshooting, status, performance, etc.]
-            OC3[Real-time Metrics\nCurrent system state snapshot]
+
+        subgraph Output_Context
+            OC1[Comprehensive Context Dict - all system data]
+            OC2[Query Classification - status, performance, etc.]
+            OC3[Real-time Metrics - current system snapshot]
         end
     end
 
@@ -167,11 +167,6 @@ graph TB
     DS3 --> PF4
     PF1 --> OC1
     PF5 --> OC2
-
-    style PF1 fill:#4caf50
-    style OC1 fill:#2196f3
-    style DS1 fill:#ff9800
-    style DS2 fill:#ff9800
 ```
 
 **Key Testing Focus:**
@@ -184,43 +179,39 @@ graph TB
 
 ```mermaid
 graph TB
-    subgraph "AdvancedRAGSystem Architecture"
-        subgraph "📚 Knowledge Base"
-            KB1[System Documentation<br/>Troubleshooting guides]
-            KB2[Performance Optimization<br/>Best practices and solutions]
-            KB3[Agent Capabilities<br/>Feature descriptions and usage]
-            KB4[Error Resolution<br/>Common issues and fixes]
-            KB5[Business Intelligence<br/>Cost optimization and reporting]
+    subgraph AdvancedRAGSystem_Architecture
+        subgraph Knowledge_Base
+            KB1[System Documentation - Troubleshooting guides]
+            KB2[Performance Optimization - Best practices]
+            KB3[Agent Capabilities - Feature usage]
+            KB4[Error Resolution - Common fixes]
+            KB5[Business Intelligence - Cost reporting]
         end
-        
-        subgraph "🔍 Retrieval Engine"
-            RE1[retrieve_relevant_documents()<br/>Document similarity search]
-            RE2[analyze_query_intent()<br/>Intent classification]
-            RE3[calculate_confidence_score()<br/>Response quality assessment]
+
+        subgraph Retrieval_Engine
+            RE1[retrieve_relevant_documents - Similarity search]
+            RE2[analyze_query_intent - Intent classification]
+            RE3[calculate_confidence_score - Quality check]
         end
-        
-        subgraph "🤖 Response Generation"
-            RG1[generate_contextual_response()<br/>Main response generation]
-            RG2[generate_status_response()<br/>System status queries]
-            RG3[generate_troubleshooting_response()<br/>Problem resolution]
-            RG4[generate_performance_response()<br/>Performance analytics]
-            RG5[generate_cost_response()<br/>Cost optimization]
+
+        subgraph Response_Generation
+            RG1[generate_contextual_response - Main response]
+            RG2[generate_status_response - System status]
+            RG3[generate_troubleshooting_response - Troubleshooting]
+            RG4[generate_performance_response - Performance]
+            RG5[generate_cost_response - Cost optimization]
         end
-        
-        subgraph "💰 Business Value"
-            BV1[calculate_response_business_value()<br/>Productivity impact calculation]
-            BV2[Quality Assessment Integration<br/>User satisfaction prediction]
+
+        subgraph Business_Value
+            BV1[calculate_response_business_value - Impact calculation]
+            BV2[Quality Assessment Integration - User satisfaction]
         end
     end
-    
+
     KB1 --> RE1
     RE1 --> RG1
     RE2 --> RG2
     RG1 --> BV1
-    
-    style RG1 fill:#4caf50
-    style BV1 fill:#2196f3
-    style KB1 fill:#ff9800
 ```
 
 **Key Testing Focus:**
@@ -233,28 +224,28 @@ graph TB
 
 ```mermaid
 graph TB
-    subgraph "QualityAssessmentSystem Architecture"
-        subgraph "📏 Quality Metrics"
-            QM1[Relevance Assessment<br/>Query-response alignment]
-            QM2[Completeness Evaluation<br/>Information coverage]
-            QM3[Accuracy Verification<br/>Technical correctness]
-            QM4[Timeliness Analysis<br/>Response speed evaluation]
+    subgraph QualityAssessmentSystem_Architecture
+        subgraph Quality_Metrics
+            QM1[Relevance Assessment - Query-response alignment]
+            QM2[Completeness Evaluation - Information coverage]
+            QM3[Accuracy Verification - Technical correctness]
+            QM4[Timeliness Analysis - Response speed]
         end
-        
-        subgraph "🎯 Assessment Functions"
-            AF1[assess_response_quality()<br/>Main quality orchestration]
-            AF2[predict_user_satisfaction()<br/>Satisfaction prediction]
-            AF3[determine_quality_grade()<br/>A-F grading system]
+
+        subgraph Assessment_Functions
+            AF1[assess_response_quality - Main orchestration]
+            AF2[predict_user_satisfaction - Satisfaction prediction]
+            AF3[determine_quality_grade - A to F grading]
         end
-        
-        subgraph "📊 Quality Output"
-            QO1[Quality Score (0-100)<br/>Overall quality rating]
-            QO2[Quality Grade (A-F)<br/>Letter grade classification]
-            QO3[Satisfaction Prediction<br/>Expected user satisfaction]
-            QO4[Improvement Recommendations<br/>Quality enhancement suggestions]
+
+        subgraph Quality_Output
+            QO1[Quality Score - Overall rating 0 to 100]
+            QO2[Quality Grade - Letter classification A to F]
+            QO3[Satisfaction Prediction - Expected user response]
+            QO4[Improvement Recommendations - Suggestions]
         end
     end
-    
+
     QM1 --> AF1
     QM2 --> AF1
     QM3 --> AF1
@@ -262,7 +253,7 @@ graph TB
     AF1 --> QO1
     AF2 --> QO3
     AF3 --> QO2
-    
+
     style AF1 fill:#4caf50
     style QO1 fill:#2196f3
     style QO2 fill:#4caf50
