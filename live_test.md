@@ -522,6 +522,428 @@ graph TD
     style D1 fill:#9e9e9e
 ```
 
+### 3.9 Individual Agent Status Diagrams
+
+#### 3.9.1 Agent Coordinator - System Management Hub
+
+```mermaid
+graph TB
+    subgraph "Agent Coordinator Status"
+        subgraph "✅ CONFIRMED WORKING"
+            AC1[Agent Registration<br/>✅ 15 agents registered]
+            AC2[Lifecycle Management<br/>✅ 4/4 agents started successfully]
+            AC3[Health Monitoring<br/>✅ Active monitoring loop]
+            AC4[System Coordination<br/>✅ Managing agent interactions]
+        end
+        
+        subgraph "📊 CURRENT METRICS"
+            M1[System Health: 84.0/100<br/>⬆️ Improved from 73.3]
+            M2[Active Agents: 9/15<br/>60% operational]
+            M3[Startup Success: 4/4<br/>100% recent success rate]
+            M4[Monitoring Frequency<br/>Every 30 seconds]
+        end
+        
+        subgraph "🔍 NEEDS INVESTIGATION"
+            N1[Missing Agent Analysis<br/>❓ Why only 9/15 active?]
+            N2[Full Agent Ecosystem<br/>❓ Identify 6 missing agents]
+            N3[Recovery Actions<br/>❓ Automated recovery working?]
+        end
+    end
+    
+    AC1 --> M1
+    AC2 --> M2
+    AC3 --> M4
+    N1 --> N2
+    
+    style AC1 fill:#4caf50
+    style AC2 fill:#4caf50
+    style AC3 fill:#4caf50
+    style AC4 fill:#4caf50
+    style M1 fill:#2196f3
+    style N1 fill:#ff9800
+    style N2 fill:#ff9800
+    style N3 fill:#ff9800
+```
+
+#### 3.9.2 Performance Monitor - Data Analytics Engine
+
+```mermaid
+graph TB
+    subgraph "Performance Monitor Status"
+        subgraph "🔴 CRITICAL ISSUES"
+            PM1[Data Structure Error<br/>🔴 'dict' has no attribute 'metric_name']
+            PM2[Error Frequency<br/>🔴 Every 2 minutes consistently]
+            PM3[Core Function Impaired<br/>🔴 ML anomaly detection blocked]
+        end
+        
+        subgraph "✅ WORKING ASPECTS"
+            W1[Agent Lifecycle<br/>✅ Starts and stays active]
+            W2[Basic Registration<br/>✅ Registers with coordinator]
+            W3[Health Monitoring<br/>✅ Sends heartbeats]
+        end
+        
+        subgraph "🔍 URGENT INVESTIGATION NEEDED"
+            I1[Data Processing Pipeline<br/>❓ Where is metric_name coming from?]
+            I2[Business Intelligence<br/>❓ Are BI reports generating?]
+            I3[Cost Analysis<br/>❓ Is cost tracking functional?]
+            I4[Executive Reports<br/>❓ What data is actually available?]
+        end
+        
+        subgraph "🔧 REQUIRED FIXES"
+            F1[Debug background_agents/<br/>monitoring/performance_monitor.py]
+            F2[Fix metric data structure<br/>Validate before accessing attributes]
+            F3[Test ML anomaly detection<br/>After data structure fix]
+        end
+    end
+    
+    PM1 --> I1
+    PM2 --> F1
+    PM3 --> F3
+    
+    style PM1 fill:#f44336
+    style PM2 fill:#f44336
+    style PM3 fill:#f44336
+    style W1 fill:#4caf50
+    style I1 fill:#ff9800
+    style I2 fill:#ff9800
+    style I3 fill:#ff9800
+    style I4 fill:#ff9800
+    style F1 fill:#9c27b0
+    style F2 fill:#9c27b0
+```
+
+#### 3.9.3 LangSmith Bridge - LLM Conversation Tracker
+
+```mermaid
+graph TB
+    subgraph "LangSmith Bridge Status"
+        subgraph "✅ EXCELLENT PERFORMANCE"
+            LS1[Data Collection<br/>✅ 5-11 conversations per cycle]
+            LS2[Consistent Operation<br/>✅ No errors in logs]
+            LS3[Agent Stability<br/>✅ Active and responsive]
+            LS4[Performance Tracking<br/>✅ Monitoring LLM usage]
+        end
+        
+        subgraph "📊 OBSERVED METRICS"
+            M1[Conversation Volume<br/>5-11 per monitoring cycle]
+            M2[Collection Frequency<br/>Every ~2 minutes]
+            M3[System Integration<br/>Working with coordinator]
+        end
+        
+        subgraph "🔍 VALIDATION NEEDED"
+            V1[Cost Tracking Accuracy<br/>❓ Is 99%+ accuracy achieved?]
+            V2[Quality Assessment<br/>❓ Are quality scores calculated?]
+            V3[Business Intelligence<br/>❓ Are executive reports generated?]
+            V4[Optimization Recommendations<br/>❓ Are cost optimizations identified?]
+        end
+        
+        subgraph "🎯 TEST PRIORITIES"
+            T1[Verify LLM cost calculations]
+            T2[Test quality assessment engine]
+            T3[Validate BI reporting features]
+            T4[Check optimization algorithms]
+        end
+    end
+    
+    LS1 --> M1
+    LS2 --> V1
+    LS3 --> T1
+    V1 --> T1
+    V2 --> T2
+    
+    style LS1 fill:#4caf50
+    style LS2 fill:#4caf50
+    style LS3 fill:#4caf50
+    style LS4 fill:#4caf50
+    style M1 fill:#2196f3
+    style V1 fill:#ff9800
+    style V2 fill:#ff9800
+    style T1 fill:#9c27b0
+```
+
+#### 3.9.4 Heartbeat Health Agent - System Health Monitor
+
+```mermaid
+graph TB
+    subgraph "Heartbeat Health Agent Status"
+        subgraph "✅ STABLE OPERATION"
+            HH1[Agent Lifecycle<br/>✅ Starts and maintains activity]
+            HH2[Health Monitoring<br/>✅ Enterprise monitoring enabled]
+            HH3[Business Intelligence<br/>✅ BI capabilities enabled]
+            HH4[System Integration<br/>✅ Coordinated startup successful]
+        end
+        
+        subgraph "📊 HEALTH CONTRIBUTION"
+            H1[System Health Score<br/>Contributing to 84.0/100]
+            H2[Health Calculation<br/>5-factor weighted scoring]
+            H3[Recovery Capabilities<br/>6 recovery types supported]
+        end
+        
+        subgraph "🔍 VALIDATION NEEDED"
+            V1[Health Score Accuracy<br/>❓ Are calculations correct?]
+            V2[Recovery System<br/>❓ Does automated recovery work?]
+            V3[Business Impact Analysis<br/>❓ Are impact assessments accurate?]
+            V4[Trend Analysis<br/>❓ Is performance trending working?]
+        end
+        
+        subgraph "🎯 TEST FOCUS AREAS"
+            T1[Test health score calculation]
+            T2[Validate recovery mechanisms]
+            T3[Verify business impact metrics]
+            T4[Check trend analysis algorithms]
+        end
+    end
+    
+    HH1 --> H1
+    H2 --> V1
+    V1 --> T1
+    V2 --> T2
+    
+    style HH1 fill:#4caf50
+    style HH2 fill:#4caf50
+    style HH3 fill:#4caf50
+    style HH4 fill:#4caf50
+    style H1 fill:#2196f3
+    style V1 fill:#ff9800
+    style V2 fill:#ff9800
+    style T1 fill:#9c27b0
+```
+
+#### 3.9.5 AI Help Agent - User Assistance System
+
+```mermaid
+graph TB
+    subgraph "AI Help Agent Status"
+        subgraph "⚠️ RECENT INSTABILITY"
+            AI1[Historical Issues<br/>⚠️ 8 cleanup actions July 1-2]
+            AI2[Current Status<br/>✅ Stable since latest restart]
+            AI3[Risk Level<br/>🟡 Medium - monitor closely]
+        end
+        
+        subgraph "✅ CURRENT FUNCTIONALITY"
+            F1[Agent Registration<br/>✅ Successfully registered]
+            F2[System Integration<br/>✅ Real-time system integration ready]
+            F3[Request Processing<br/>✅ Request processing system ready]
+            F4[Health Monitoring<br/>✅ Enabled and functional]
+        end
+        
+        subgraph "🔍 CRITICAL VALIDATION NEEDED"
+            V1[System Context Integration<br/>❓ Can gather real-time status?]
+            V2[RAG System Performance<br/>❓ Is knowledge base functional?]
+            V3[Quality Assessment<br/>❓ Are quality scores calculated?]
+            V4[Response Generation<br/>❓ Can handle help requests?]
+            V5[Stability Under Load<br/>❓ Will it crash during testing?]
+        end
+        
+        subgraph "🎯 TEST STRATEGY"
+            S1[Start with simple queries]
+            S2[Monitor for restart signs]
+            S3[Test gradually increasing load]
+            S4[Have restart procedure ready]
+        end
+    end
+    
+    AI1 --> AI3
+    AI2 --> F1
+    V5 --> S2
+    S1 --> S3
+    
+    style AI1 fill:#ff9800
+    style AI2 fill:#4caf50
+    style AI3 fill:#ff9800
+    style F1 fill:#4caf50
+    style F2 fill:#4caf50
+    style V1 fill:#ff9800
+    style V5 fill:#f44336
+    style S1 fill:#9c27b0
+    style S2 fill:#9c27b0
+```
+
+#### 3.9.6 Self Healing Agent - Automated Recovery System
+
+```mermaid
+graph TB
+    subgraph "Self Healing Agent Status"
+        subgraph "❓ UNKNOWN STATUS"
+            SH1[Registration Status<br/>❓ Registered but unclear if active]
+            SH2[Operational State<br/>❓ No recent log activity]
+            SH3[Recovery Capability<br/>❓ Unknown if functional]
+        end
+        
+        subgraph "📋 EXPECTED CAPABILITIES"
+            E1[Issue Detection<br/>7 issue types: agent failure, DB, performance, etc.]
+            E2[Recovery Engine<br/>Automated recovery with rollback]
+            E3[Business Continuity<br/>Minimize service impact]
+        end
+        
+        subgraph "🔍 URGENT INVESTIGATION"
+            I1[Agent Process Status<br/>🔴 Is the agent actually running?]
+            I2[Heartbeat Activity<br/>🔴 Are heartbeats being sent?]
+            I3[Issue Detection Active<br/>🔴 Is monitoring functional?]
+            I4[Recovery Engine Status<br/>🔴 Can it execute recovery?]
+        end
+        
+        subgraph "🎯 INVESTIGATION STEPS"
+            S1[Check process list for agent]
+            S2[Query database for heartbeats]
+            S3[Test basic agent communication]
+            S4[Trigger test recovery scenario]
+        end
+    end
+    
+    SH1 --> I1
+    SH2 --> I2
+    I1 --> S1
+    I2 --> S2
+    
+    style SH1 fill:#ff9800
+    style SH2 fill:#ff9800
+    style SH3 fill:#ff9800
+    style E1 fill:#2196f3
+    style I1 fill:#f44336
+    style I2 fill:#f44336
+    style I3 fill:#f44336
+    style I4 fill:#f44336
+    style S1 fill:#9c27b0
+```
+
+#### 3.9.7 Enhanced Shared State Monitor - Performance Optimizer
+
+```mermaid
+graph TB
+    subgraph "Enhanced Shared State Monitor Status"
+        subgraph "❓ UNCLEAR STATUS"
+            ES1[Registration<br/>❓ Registered but activity unknown]
+            ES2[Monitoring Activity<br/>❓ No confirmed log activity]
+            ES3[State Analysis<br/>❓ Unknown if analyzing performance]
+        end
+        
+        subgraph "🔗 RELATIONSHIP CONTEXT"
+            R1[Shared State Manager<br/>✅ Core component operational]
+            R2[PostgreSQL Backend<br/>✅ State persistence working]
+            R3[System Health<br/>84.0/100 suggests some monitoring]
+        end
+        
+        subgraph "📋 EXPECTED FUNCTIONS"
+            F1[8 Key Metrics Analysis<br/>agents, connections, query perf, etc.]
+            F2[Performance Optimization<br/>Cache hit ratios, query performance]
+            F3[Business Impact Analysis<br/>Productivity and cost implications]
+        end
+        
+        subgraph "🔍 INVESTIGATION PRIORITIES"
+            P1[Agent Process Verification<br/>🔴 Is it actually running?]
+            P2[State Monitoring Activity<br/>🔴 Is it analyzing shared state?]
+            P3[Performance Metrics<br/>🔴 Are optimization recommendations generated?]
+            P4[Business Intelligence<br/>🔴 Is impact analysis functional?]
+        end
+        
+        subgraph "🎯 VALIDATION APPROACH"
+            V1[Check for agent process]
+            V2[Query performance metrics table]
+            V3[Test state analysis functions]
+            V4[Verify optimization recommendations]
+        end
+    end
+    
+    ES1 --> P1
+    R1 --> F1
+    P1 --> V1
+    P2 --> V2
+    
+    style ES1 fill:#ff9800
+    style ES2 fill:#ff9800
+    style ES3 fill:#ff9800
+    style R1 fill:#4caf50
+    style R2 fill:#4caf50
+    style P1 fill:#f44336
+    style P2 fill:#f44336
+         style V1 fill:#9c27b0
+```
+
+#### 3.9.8 Missing Agents Investigation - The 6 Unknown Agents
+
+```mermaid
+graph TB
+    subgraph "Missing Agents Analysis"
+        subgraph "✅ CONFIRMED ACTIVE (9/15)"
+            A1[Agent Coordinator<br/>✅ Managing system]
+            A2[Heartbeat Health Agent<br/>✅ Stable operation]
+            A3[Performance Monitor<br/>⚠️ Active with errors]
+            A4[LangSmith Bridge<br/>✅ Collecting data]
+            A5[AI Help Agent<br/>✅ Stable after restart]
+            A6[Self Healing Agent<br/>❓ Status unknown]
+            A7[Enhanced State Monitor<br/>❓ Status unknown]
+            A8[System Initializer<br/>✅ Completed tasks]
+            A9[Additional Agent<br/>❓ Type unknown]
+        end
+        
+        subgraph "❌ MISSING AGENTS (6/15)"
+            M1[Vector Store Manager<br/>❓ Memory management agent]
+            M2[Data Import Agent<br/>❓ Import operations handler]
+            M3[Error Recovery Agent<br/>❓ System recovery specialist]
+            M4[Business Intelligence Agent<br/>❓ Analytics processor]
+            M5[Security Monitor<br/>❓ Security and compliance]
+            M6[Unknown Agent Type<br/>❓ Purpose unclear]
+        end
+        
+        subgraph "🔍 INVESTIGATION STRATEGY"
+            I1[Query agent registry<br/>Get full list of registered agents]
+            I2[Check background processes<br/>Look for running but unregistered agents]
+            I3[Review system logs<br/>Find agent startup attempts]
+            I4[Analyze code structure<br/>Find agent class definitions]
+        end
+        
+        subgraph "📋 EXPECTED FINDINGS"
+            E1[Agent Configuration Issues<br/>Agents defined but not starting]
+            E2[Missing Dependencies<br/>Agents failing to initialize]
+            E3[Database Registration Problems<br/>Agents running but not registered]
+            E4[Code Implementation Gaps<br/>Agents planned but not coded]
+        end
+    end
+    
+    A9 --> I1
+    M1 --> I2
+    M2 --> I3
+    M3 --> I4
+    I1 --> E1
+    I2 --> E2
+    
+    style A1 fill:#4caf50
+    style A2 fill:#4caf50
+    style A4 fill:#4caf50
+    style A5 fill:#4caf50
+    style A8 fill:#4caf50
+    style A3 fill:#ff9800
+    style A6 fill:#ff9800
+    style A7 fill:#ff9800
+    style A9 fill:#ff9800
+    style M1 fill:#f44336
+    style M2 fill:#f44336
+    style M3 fill:#f44336
+    style M4 fill:#f44336
+    style M5 fill:#f44336
+    style M6 fill:#f44336
+    style I1 fill:#9c27b0
+    style I2 fill:#9c27b0
+    style I3 fill:#9c27b0
+    style I4 fill:#9c27b0
+```
+
+### 3.10 Agent Investigation Summary
+
+**🎯 Priority Investigation Order:**
+1. **Performance Monitor** - Fix data structure error (highest impact)
+2. **Self Healing Agent** - Verify if actually running (critical for reliability)
+3. **Enhanced Shared State Monitor** - Confirm monitoring activity
+4. **Missing 6 Agents** - Identify what should be running (system completeness)
+
+**📊 Current Agent Ecosystem Health:**
+- **Strong Performers (3):** Agent Coordinator, Heartbeat Health, LangSmith Bridge
+- **Stable with Issues (1):** Performance Monitor (needs data structure fix)
+- **Needs Investigation (2):** Self Healing, Enhanced State Monitor
+- **Unknown/Missing (6):** Requires system-wide investigation
+- **Recently Unstable (1):** AI Help Agent (now stable, monitor closely)
+
 ---
 
 ## 4. Test Environment Setup (5 minutes)
