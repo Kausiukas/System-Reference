@@ -140,34 +140,34 @@ graph LR
 graph TB
     subgraph "SystemContextIntegrator Architecture"
         subgraph "📊 Data Sources"
-            DS1[System Status<br/>Agents, health, uptime]
-            DS2[Agent Performance<br/>Metrics, processing times]
-            DS3[Recent Events<br/>Last 10 system events]
-            DS4[Performance Metrics<br/>CPU, memory, response times]
-            DS5[Business Context<br/>Cost, efficiency, satisfaction]
+            DS1[System Status\nAgents, health, uptime]
+            DS2[Agent Performance\nMetrics, processing times]
+            DS3[Recent Events\nLast 10 system events]
+            DS4[Performance Metrics\nCPU, memory, response times]
+            DS5[Business Context\nCost, efficiency, satisfaction]
         end
         
         subgraph "🔄 Processing Functions"
-            PF1[gather_system_context()<br/>Main orchestration function]
-            PF2[get_system_status()<br/>Agent count and health]
-            PF3[get_agent_performance_context()<br/>Performance aggregation]
-            PF4[get_recent_system_events()<br/>Event filtering and summarization]
-            PF5[categorize_query()<br/>Query type classification]
+            PF1[gather_system_context()\nMain orchestration function]
+            PF2[get_system_status()\nAgent count and health]
+            PF3[get_agent_performance_context()\nPerformance aggregation]
+            PF4[get_recent_system_events()\nEvent filtering and summarization]
+            PF5[categorize_query()\nQuery type classification]
         end
         
         subgraph "📤 Output Context"
-            OC1[Comprehensive Context Dict<br/>All system data for AI response]
-            OC2[Query Classification<br/>troubleshooting, status, performance, etc.]
-            OC3[Real-time Metrics<br/>Current system state snapshot]
+            OC1[Comprehensive Context Dict\nAll system data for AI response]
+            OC2[Query Classification\ntroubleshooting, status, performance, etc.]
+            OC3[Real-time Metrics\nCurrent system state snapshot]
         end
     end
-    
+
     DS1 --> PF2
     DS2 --> PF3
     DS3 --> PF4
     PF1 --> OC1
     PF5 --> OC2
-    
+
     style PF1 fill:#4caf50
     style OC1 fill:#2196f3
     style DS1 fill:#ff9800
