@@ -12,6 +12,7 @@ from datetime import datetime, timezone
 import signal
 import sys
 from dataclasses import dataclass
+import time
 
 from .base_agent import BaseAgent
 from .shared_state import SharedState
@@ -194,23 +195,52 @@ class AgentCoordinator:
         return startup_results
         
     async def _start_agent_with_timeout(self, agent_id: str, agent: BaseAgent) -> bool:
-        """Start individual agent with timeout protection"""
+        """
+        Start agent and wait for it to become active (not for startup to complete)
+        
+        Note: Agent startup includes the main loop and should run indefinitely.
+        We only wait for the agent to reach 'active' state, not for startup to complete.
+        """
         try:
-            # Create agent task
+            self.logger.info(f"Starting agent {agent_id}")
+            
+            # Start agent task (this will run indefinitely)
             agent_task = asyncio.create_task(
                 agent.startup(),
                 name=f"agent_{agent_id}"
             )
             self.agent_tasks[agent_id] = agent_task
             
-            # Wait with timeout
-            await asyncio.wait_for(agent_task, timeout=self.startup_timeout)
+            # Wait for agent to become active (with timeout for activation only)
+            activation_timeout = 30  # 30 seconds to become active
+            start_time = time.time()
             
-            return True
+            while time.time() - start_time < activation_timeout:
+                try:
+                    # Check if agent is active
+                    agent_status = await self.shared_state.get_agent_status(agent_id)
+                    if agent_status.get('state') == 'active':
+                        self.logger.info(f"Agent {agent_id} successfully activated")
+                        return True
+                        
+                    await asyncio.sleep(1)  # Check every second
+                    
+                except Exception as e:
+                    self.logger.debug(f"Waiting for agent {agent_id} activation: {e}")
+                    await asyncio.sleep(1)
             
-        except asyncio.TimeoutError:
-            self.logger.error(f"Agent {agent_id} startup timed out after {self.startup_timeout}s")
-            await self._handle_agent_startup_failure(agent_id, "startup_timeout")
+            # If we get here, activation timed out
+            self.logger.error(f"Agent {agent_id} failed to activate within {activation_timeout}s")
+            
+            # Cancel the agent task since it didn't activate properly
+            if not agent_task.done():
+                agent_task.cancel()
+                try:
+                    await agent_task
+                except asyncio.CancelledError:
+                    pass
+                    
+            await self._handle_agent_startup_failure(agent_id, "activation_timeout")
             return False
             
         except Exception as e:
@@ -624,4 +654,4 @@ class AgentCoordinator:
             
         except Exception as e:
             self.logger.error(f"Failed to get status summary: {e}")
-            return {'error': str(e)} 
+            return {'error': str(e)}

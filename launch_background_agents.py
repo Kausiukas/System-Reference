@@ -81,7 +81,7 @@ class BackgroundAgentsLauncher:
                 logging.FileHandler(logs_dir / "background_agents_launcher.log"),
                 logging.StreamHandler(sys.stdout)
             ]
-        )
+            )
         
         # Set specific log levels
         logging.getLogger("background_agents").setLevel(logging.INFO)
@@ -146,15 +146,15 @@ class BackgroundAgentsLauncher:
         try:
             # Initialize PostgreSQL adapter
             self.logger.info("Initializing PostgreSQL adapter...")
-                    connection_config = ConnectionConfig(
-            host=self.config['database']['host'],
-            port=self.config['database']['port'],
-            database=self.config['database']['database'],
-            user=self.config['database']['user'],
-            password=self.config['database']['password'],
-            min_connections=self.config['database']['pool_size'] // 2,
-            max_connections=self.config['database']['pool_size']
-        )
+            connection_config = ConnectionConfig(
+                host=self.config['database']['host'],
+                port=self.config['database']['port'],
+                database=self.config['database']['database'],
+                user=self.config['database']['user'],
+                password=self.config['database']['password'],
+                min_connections=self.config['database']['pool_size'] // 2,
+                max_connections=self.config['database']['pool_size']
+                )
             
             self.postgresql_adapter = PostgreSQLAdapter(connection_config)
             await self.postgresql_adapter.initialize()
@@ -201,7 +201,7 @@ class BackgroundAgentsLauncher:
             heartbeat_agent = HeartbeatHealthAgent(
                 agent_id="heartbeat_health_agent",
                 shared_state=self.shared_state
-            )
+                )
             heartbeat_agent.work_interval = self.config['monitoring']['heartbeat_interval']
             self.agents['heartbeat_health_agent'] = heartbeat_agent
             
@@ -210,7 +210,7 @@ class BackgroundAgentsLauncher:
             performance_monitor = PerformanceMonitor(
                 agent_id="performance_monitor",
                 shared_state=self.shared_state
-            )
+                )
             performance_monitor.work_interval = self.config['monitoring']['performance_interval']
             self.agents['performance_monitor'] = performance_monitor
             
@@ -219,7 +219,7 @@ class BackgroundAgentsLauncher:
             langsmith_bridge = LangSmithBridge(
                 agent_id="langsmith_bridge",
                 shared_state=self.shared_state
-            )
+                )
             langsmith_bridge.work_interval = self.config['monitoring']['langsmith_interval']
             self.agents['langsmith_bridge'] = langsmith_bridge
             
@@ -228,7 +228,7 @@ class BackgroundAgentsLauncher:
             ai_help_agent = AIHelpAgent(
                 agent_id="ai_help_agent",
                 shared_state=self.shared_state
-            )
+                )
             ai_help_agent.work_interval = self.config['monitoring']['ai_help_interval']
             self.agents['ai_help_agent'] = ai_help_agent
             
@@ -239,42 +239,33 @@ class BackgroundAgentsLauncher:
             raise
             
     async def start_agents(self) -> None:
-        """Start all agents with coordinated startup"""
+        """Start all agents with coordinated startup using the agent coordinator"""
         
         self.logger.info("Starting background agents...")
         
         try:
-            startup_order = [
-                'heartbeat_health_agent',
-                'performance_monitor',
-                'langsmith_bridge',
-                'ai_help_agent'
-            ]
-            
-            for agent_id in startup_order:
+            # Register all agents with coordinator first
+            for agent_id in ['heartbeat_health_agent', 'performance_monitor', 'langsmith_bridge', 'ai_help_agent']:
                 if agent_id in self.agents:
-                    self.logger.info(f"Starting {agent_id}...")
-                    
-                    try:
-                        # Register agent with coordinator
-                        await self.agent_coordinator.register_agent(self.agents[agent_id])
-                        
-                        # Start agent task
-                        task = asyncio.create_task(
-                            self.run_agent_with_recovery(agent_id)
-                        )
-                        self.agent_tasks[agent_id] = task
-                        
-                        # Delay between agent startups
-                        await asyncio.sleep(self.config['agents']['startup_delay'])
-                        
-                        self.logger.info(f"Agent {agent_id} started successfully")
-                        
-                    except Exception as e:
-                        self.logger.error(f"Failed to start agent {agent_id}: {e}")
-                        raise
-                        
-            self.logger.info(f"All {len(self.agent_tasks)} agents started successfully")
+                    self.logger.info(f"Registering {agent_id} with coordinator...")
+                    await self.agent_coordinator.register_agent(self.agents[agent_id])
+            
+            # Use coordinator to start all agents (this uses our fixed startup logic)
+            self.logger.info("Starting agents through coordinator...")
+            startup_results = await self.agent_coordinator.start_all_agents()
+            
+            # Track successful startups
+            successful_agents = [agent_id for agent_id, success in startup_results.items() if success]
+            failed_agents = [agent_id for agent_id, success in startup_results.items() if not success]
+            
+            if successful_agents:
+                self.logger.info(f"Successfully started agents: {', '.join(successful_agents)}")
+            
+            if failed_agents:
+                self.logger.error(f"Failed to start agents: {', '.join(failed_agents)}")
+                # Don't raise exception for partial failures - let the system run with available agents
+            
+            self.logger.info(f"Agent startup completed: {len(successful_agents)}/{len(startup_results)} agents started successfully")
             
         except Exception as e:
             self.logger.error(f"Agent startup failed: {e}")
@@ -287,21 +278,27 @@ class BackgroundAgentsLauncher:
         recovery_attempts = 0
         max_attempts = self.config['agents']['recovery_attempts']
         
+        self.logger.info(f"Starting recovery runner for agent {agent_id}")
+        
         while self.is_running and recovery_attempts <= max_attempts:
             try:
                 self.logger.info(f"Starting agent {agent_id} (attempt {recovery_attempts + 1})")
+                self.logger.debug(f"Agent {agent_id} runner state - is_running: {self.is_running}")
                 
                 # Start the agent
-                await agent.start()
+                self.logger.debug(f"Calling startup() for agent {agent_id}...")
+                await agent.startup()
+                self.logger.warning(f"Agent {agent_id} startup() method completed - this indicates the agent's main loop exited")
                 
                 # Reset recovery attempts on successful start
                 recovery_attempts = 0
                 
-                # Wait for agent to complete or system shutdown
-                await agent.wait_for_completion()
-                
+                # Agent startup() includes main loop, so if we reach here, agent has stopped
                 if self.is_running:
-                    self.logger.warning(f"Agent {agent_id} stopped unexpectedly")
+                    self.logger.warning(f"Agent {agent_id} stopped unexpectedly while system is still running")
+                    self.logger.debug(f"Agent {agent_id} final state - is_running: {agent.is_running}, shutdown_requested: {getattr(agent, 'shutdown_requested', 'N/A')}")
+                else:
+                    self.logger.info(f"Agent {agent_id} stopped because system is shutting down")
                     
             except Exception as e:
                 recovery_attempts += 1
@@ -342,7 +339,7 @@ class BackgroundAgentsLauncher:
                 self.logger.info(
                     f"System Health: {health_score:.1f}/100, "
                     f"Agents: {active_agents}/{total_agents} active"
-                )
+                    )
                 
                 # Check for system issues
                 if health_score < 70:
@@ -358,7 +355,7 @@ class BackgroundAgentsLauncher:
                             'status': 'degraded' if health_score < 70 else 'healthy'
                         },
                         severity='WARNING' if health_score < 70 else 'INFO'
-                    )
+                        )
                     
                 # Wait for next health check
                 await asyncio.sleep(health_check_interval)
@@ -397,7 +394,7 @@ class BackgroundAgentsLauncher:
                     'system_version': '1.0.0'
                 },
                 severity='INFO'
-            )
+                )
             
             # Log business metric
             await self.shared_state.log_business_metric(
@@ -405,7 +402,7 @@ class BackgroundAgentsLauncher:
                 'successful_startup',
                 1.0,
                 {'startup_duration': (datetime.now(timezone.utc) - self.startup_time).total_seconds()}
-            )
+                )
             
             self.logger.info("Background Agents System started successfully")
             
@@ -441,7 +438,7 @@ class BackgroundAgentsLauncher:
                     'system_shutdown_start',
                     {'shutdown_reason': 'graceful', 'uptime': self.get_uptime()},
                     severity='INFO'
-                )
+                    )
             
             # Stop agents gracefully
             self.logger.info("Stopping agents...")
@@ -449,7 +446,7 @@ class BackgroundAgentsLauncher:
             
             for agent_id, agent in self.agents.items():
                 self.logger.info(f"Stopping {agent_id}...")
-                stop_task = asyncio.create_task(agent.stop())
+                stop_task = asyncio.create_task(agent.shutdown())
                 stop_tasks.append(stop_task)
                 
             # Wait for agents to stop with timeout
@@ -457,7 +454,7 @@ class BackgroundAgentsLauncher:
                 await asyncio.wait_for(
                     asyncio.gather(*stop_tasks, return_exceptions=True),
                     timeout=self.config['system']['graceful_shutdown_timeout']
-                )
+                    )
                 self.logger.info("All agents stopped successfully")
             except asyncio.TimeoutError:
                 self.logger.warning("Agent shutdown timeout exceeded")
@@ -471,7 +468,7 @@ class BackgroundAgentsLauncher:
             # Stop coordinator
             if self.agent_coordinator:
                 self.logger.info("Stopping agent coordinator...")
-                await self.agent_coordinator.stop()
+                await self.agent_coordinator.shutdown()
                 
             # Close shared state
             if self.shared_state:
@@ -485,7 +482,7 @@ class BackgroundAgentsLauncher:
                         'uptime': self.get_uptime()
                     },
                     severity='INFO'
-                )
+                    )
                 
                 # Log business metric
                 await self.shared_state.log_business_metric(
@@ -493,7 +490,7 @@ class BackgroundAgentsLauncher:
                     'graceful_shutdown',
                     1.0,
                     {'shutdown_duration': time.time() - shutdown_start}
-                )
+                    )
                 
                 await self.shared_state.close()
                 
@@ -567,11 +564,29 @@ if __name__ == "__main__":
     env_file = Path(".env")
     if env_file.exists():
         # Load environment variables from .env file
-        import subprocess
         try:
-            subprocess.run(["python", "-c", "import dotenv; dotenv.load_dotenv()"], check=True)
-        except:
-            pass  # Continue without dotenv if not available
+            from dotenv import load_dotenv
+            load_dotenv(env_file)
+            print(f"✅ Loaded environment variables from {env_file}")
+        except ImportError:
+            # Fallback to manual loading if python-dotenv not available
+            print("⚠️  python-dotenv not available, loading .env manually...")
+            try:
+                with open(env_file, 'r') as f:
+                    for line in f:
+                        line = line.strip()
+                        if line and not line.startswith('#') and '=' in line:
+                            key, value = line.split('=', 1)
+                            # Remove quotes if present
+                            value = value.strip().strip('"').strip("'")
+                            os.environ[key.strip()] = value
+                print(f"✅ Manually loaded environment variables from {env_file}")
+            except Exception as e:
+                print(f"⚠️  Could not load .env file: {e}")
+        except Exception as e:
+            print(f"⚠️  Error loading .env file: {e}")
+    else:
+        print("ℹ️  No .env file found, using system environment variables")
             
     # Run the main function
     asyncio.run(main()) 

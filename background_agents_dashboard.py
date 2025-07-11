@@ -18,6 +18,7 @@ from typing import Dict, List, Optional, Any
 import logging
 import os
 import json
+from dotenv import load_dotenv
 
 # Import coordination system
 from background_agents.coordination.shared_state import SharedState
@@ -33,21 +34,25 @@ class DashboardDataProvider:
         self.connection_initialized = False
         
     async def initialize_connection(self):
-        """Initialize PostgreSQL connection"""
+        """Initialize database connection"""
+        
         if self.connection_initialized:
             return
             
         try:
-            # Initialize PostgreSQL adapter
-                connection_config = ConnectionConfig(
-        host=os.getenv('POSTGRESQL_HOST', 'localhost'),
-        port=int(os.getenv('POSTGRESQL_PORT', '5432')),
-        database=os.getenv('POSTGRESQL_DATABASE', 'background_agents'),
-        user=os.getenv('POSTGRESQL_USER', 'postgres'),
-        password=os.getenv('POSTGRESQL_PASSWORD', ''),
-        min_connections=5,
-        max_connections=10
-    )
+            # Load environment variables from .env file
+            load_dotenv()
+            
+            # Create connection configuration
+            connection_config = ConnectionConfig(
+                host=os.getenv('POSTGRESQL_HOST', 'localhost'),
+                port=int(os.getenv('POSTGRESQL_PORT', '5432')),
+                database=os.getenv('POSTGRESQL_DATABASE', 'background_agents'),
+                user=os.getenv('POSTGRESQL_USER', 'postgres'),
+                password=os.getenv('POSTGRESQL_PASSWORD', ''),
+                min_connections=5,
+                max_connections=10
+            )
             
             self.postgresql_adapter = PostgreSQLAdapter(connection_config)
             await self.postgresql_adapter.initialize()
@@ -262,7 +267,7 @@ def create_agents_overview_table(agents: List[Dict[str, Any]]):
         }.get(val.lower(), '')
         return color
         
-    styled_df = df.style.applymap(style_state, subset=['State'])
+    styled_df = df.style.map(style_state, subset=['State'])
     
     st.dataframe(styled_df, use_container_width=True, height=300)
 
@@ -357,25 +362,37 @@ def create_business_intelligence_dashboard(performance_data: Dict[str, Any]):
     
     with col1:
         # Cost optimization metrics
-        cost_metrics = df[df['category'] == 'cost_optimization']
+        cost_metrics = df[df['metric_category'] == 'cost_optimization'] if 'metric_category' in df.columns else df[df.get('category', '') == 'cost_optimization']
         if not cost_metrics.empty:
-            total_cost_impact = cost_metrics['cost_impact'].sum()
-            st.metric(
-                label="Cost Impact",
-                value=f"${total_cost_impact:,.2f}",
-                help="Total cost impact from optimization efforts"
-            )
+            # Use metric_value column which exists in the actual database schema
+            if 'metric_value' in df.columns:
+                total_cost_impact = cost_metrics['metric_value'].sum()
+            else:
+                total_cost_impact = 0
+        else:
+            total_cost_impact = 0
+        st.metric(
+            label="Cost Impact",
+            value=f"${total_cost_impact:,.2f}",
+            help="Total cost impact from optimization efforts"
+        )
             
     with col2:
         # Revenue impact metrics
-        revenue_metrics = df[df['category'] == 'revenue']
+        revenue_metrics = df[df['metric_category'] == 'revenue'] if 'metric_category' in df.columns else df[df.get('category', '') == 'revenue']
         if not revenue_metrics.empty:
-            total_revenue_impact = revenue_metrics['revenue_impact'].sum()
-            st.metric(
-                label="Revenue Impact",
-                value=f"${total_revenue_impact:,.2f}",
-                help="Total revenue impact from system improvements"
-            )
+            # Use metric_value column which exists in the actual database schema
+            if 'metric_value' in df.columns:
+                total_revenue_impact = revenue_metrics['metric_value'].sum()
+            else:
+                total_revenue_impact = 0
+        else:
+            total_revenue_impact = 0
+        st.metric(
+            label="Revenue Impact",
+            value=f"${total_revenue_impact:,.2f}",
+            help="Total revenue impact from system improvements"
+        )
             
     with col3:
         # System efficiency
@@ -392,16 +409,17 @@ def create_business_intelligence_dashboard(performance_data: Dict[str, Any]):
     st.subheader("Business Value Trends")
     
     # Group by category and date
-    if 'category' in df.columns:
+    category_column = 'metric_category' if 'metric_category' in df.columns else 'category'
+    if category_column in df.columns and 'metric_value' in df.columns:
         df['date'] = df['timestamp'].dt.date
-        business_trends = df.groupby(['date', 'category'])['metric_value'].sum().reset_index()
+        business_trends = df.groupby(['date', category_column])['metric_value'].sum().reset_index()
         
         if not business_trends.empty:
             fig = px.line(
                 business_trends,
                 x='date',
                 y='metric_value',
-                color='category',
+                color=category_column,
                 title='Business Metrics by Category',
                 labels={'metric_value': 'Metric Value', 'date': 'Date'}
             )

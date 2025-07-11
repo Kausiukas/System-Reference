@@ -465,15 +465,13 @@ class PostgreSQLAdapter:
         """Get recent heartbeat timestamps for an agent"""
         try:
             async with self.get_connection() as connection:
-                rows = await connection.fetch(
-                    """
+                query = f"""
                     SELECT timestamp FROM agent_heartbeats
                     WHERE agent_id = $1 
-                    AND timestamp >= NOW() - INTERVAL '%s minutes'
+                    AND timestamp >= NOW() - INTERVAL '{minutes} minutes'
                     ORDER BY timestamp DESC
-                    """,
-                    agent_id, minutes
-                )
+                """
+                rows = await connection.fetch(query, agent_id)
                 
             self.connection_stats['queries_executed'] += 1
             return [row['timestamp'] for row in rows]
@@ -487,16 +485,14 @@ class PostgreSQLAdapter:
         """Get agent health data over time"""
         try:
             async with self.get_connection() as connection:
-                rows = await connection.fetch(
-                    """
+                query = f"""
                     SELECT timestamp, heartbeat_data, health_score
                     FROM agent_heartbeats
                     WHERE agent_id = $1 
-                    AND timestamp >= NOW() - INTERVAL '%s hours'
+                    AND timestamp >= NOW() - INTERVAL '{hours} hours'
                     ORDER BY timestamp DESC
-                    """,
-                    agent_id, hours
-                )
+                """
+                rows = await connection.fetch(query, agent_id)
                 
             self.connection_stats['queries_executed'] += 1
             
@@ -522,13 +518,28 @@ class PostgreSQLAdapter:
                                    agent_id: str = None) -> None:
         """Log performance metric to database"""
         try:
+            # For system-level metrics, check if agent exists to avoid foreign key constraint
+            valid_agent_id = None
+            if agent_id:
+                async with self.get_connection() as connection:
+                    agent_exists = await connection.fetchval(
+                        "SELECT EXISTS(SELECT 1 FROM agents WHERE agent_id = $1)", 
+                        agent_id
+                    )
+                    
+                if agent_exists:
+                    valid_agent_id = agent_id
+                else:
+                    # Log as system metric without agent_id to avoid foreign key constraint
+                    self.logger.debug(f"Agent {agent_id} not found in registry, logging as system metric")
+                    
             async with self.get_connection() as connection:
                 await connection.execute(
                     """
                     INSERT INTO performance_metrics (agent_id, metric_name, metric_value, metric_unit)
                     VALUES ($1, $2, $3, $4)
                     """,
-                    agent_id, metric_name, value, unit
+                    valid_agent_id, metric_name, value, unit
                 )
                 
             self.connection_stats['queries_executed'] += 1
@@ -543,7 +554,7 @@ class PostgreSQLAdapter:
         """Get performance metrics with optional filtering"""
         try:
             async with self.get_connection() as connection:
-                conditions = ["timestamp >= NOW() - INTERVAL '%s hours'" % hours]
+                conditions = [f"timestamp >= NOW() - INTERVAL '{hours} hours'"]
                 params = []
                 
                 if agent_id:
@@ -587,13 +598,28 @@ class PostgreSQLAdapter:
                              agent_id: str = None, severity: str = 'INFO') -> None:
         """Log system event to database"""
         try:
+            # For system-level events, check if agent exists to avoid foreign key constraint
+            valid_agent_id = None
+            if agent_id:
+                async with self.get_connection() as connection:
+                    agent_exists = await connection.fetchval(
+                        "SELECT EXISTS(SELECT 1 FROM agents WHERE agent_id = $1)", 
+                        agent_id
+                    )
+                    
+                if agent_exists:
+                    valid_agent_id = agent_id
+                else:
+                    # Log as system event without agent_id to avoid foreign key constraint
+                    self.logger.debug(f"Agent {agent_id} not found in registry, logging as system event")
+                    
             async with self.get_connection() as connection:
                 await connection.execute(
                     """
                     INSERT INTO system_events (event_type, event_data, agent_id, severity)
                     VALUES ($1, $2, $3, $4)
                     """,
-                    event_type, json.dumps(event_data), agent_id, severity
+                    event_type, json.dumps(event_data), valid_agent_id, severity
                 )
                 
             self.connection_stats['queries_executed'] += 1
@@ -608,7 +634,7 @@ class PostgreSQLAdapter:
         """Get system events with optional filtering"""
         try:
             async with self.get_connection() as connection:
-                conditions = ["timestamp >= NOW() - INTERVAL '%s hours'" % hours]
+                conditions = [f"timestamp >= NOW() - INTERVAL '{hours} hours'"]
                 params = []
                 
                 if event_type:
@@ -680,7 +706,7 @@ class PostgreSQLAdapter:
         """Get business analytics metrics"""
         try:
             async with self.get_connection() as connection:
-                conditions = ["timestamp >= NOW() - INTERVAL '%s hours'" % hours]
+                conditions = [f"timestamp >= NOW() - INTERVAL '{hours} hours'"]
                 params = []
                 
                 if category:
@@ -819,27 +845,24 @@ class PostgreSQLAdapter:
             async with self.transaction() as connection:
                 # Cleanup old heartbeats
                 heartbeat_count = await connection.fetchval(
-                    "DELETE FROM agent_heartbeats WHERE timestamp < NOW() - INTERVAL '%s days' RETURNING count(*)",
-                    days
+                    f"DELETE FROM agent_heartbeats WHERE timestamp < NOW() - INTERVAL '{days} days' RETURNING count(*)"
                 )
                 cleanup_stats['heartbeats_deleted'] = heartbeat_count or 0
                 
                 # Cleanup old performance metrics
                 metrics_count = await connection.fetchval(
-                    "DELETE FROM performance_metrics WHERE timestamp < NOW() - INTERVAL '%s days' RETURNING count(*)",
-                    days
+                    f"DELETE FROM performance_metrics WHERE timestamp < NOW() - INTERVAL '{days} days' RETURNING count(*)"
                 )
                 cleanup_stats['metrics_deleted'] = metrics_count or 0
                 
                 # Cleanup old system events (keep errors longer)
                 events_count = await connection.fetchval(
-                    """
+                    f"""
                     DELETE FROM system_events 
-                    WHERE timestamp < NOW() - INTERVAL '%s days' 
+                    WHERE timestamp < NOW() - INTERVAL '{days} days' 
                     AND severity NOT IN ('ERROR', 'CRITICAL')
                     RETURNING count(*)
-                    """,
-                    days
+                    """
                 )
                 cleanup_stats['events_deleted'] = events_count or 0
                 
@@ -867,6 +890,42 @@ class PostgreSQLAdapter:
             self.logger.error(f"Reconnection failed: {e}")
             raise
             
+    # Generic Query Methods (for SystemInitializer compatibility)
+    
+    async def execute_query(self, query: str, *params) -> List[Dict[str, Any]]:
+        """Execute a SELECT query and return results as list of dictionaries"""
+        try:
+            async with self.get_connection() as connection:
+                rows = await connection.fetch(query, *params)
+                
+            self.connection_stats['queries_executed'] += 1
+            
+            # Convert rows to list of dictionaries
+            result = []
+            for row in rows:
+                result.append(dict(row))
+                
+            return result
+            
+        except Exception as e:
+            self.connection_stats['errors_encountered'] += 1
+            self.logger.error(f"Query execution failed: {e}")
+            raise
+            
+    async def execute_raw_sql(self, sql: str) -> None:
+        """Execute raw SQL (CREATE, ALTER, DROP, etc.)"""
+        try:
+            async with self.get_connection() as connection:
+                await connection.execute(sql)
+                
+            self.connection_stats['queries_executed'] += 1
+            self.logger.debug(f"Raw SQL executed successfully: {sql[:100]}...")
+            
+        except Exception as e:
+            self.connection_stats['errors_encountered'] += 1
+            self.logger.error(f"Raw SQL execution failed: {e}")
+            raise
+    
     async def close(self) -> None:
         """Close connection pool gracefully"""
         try:

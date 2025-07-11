@@ -141,8 +141,8 @@ class BaseAgent(ABC):
             }
             
             await self.shared_state.register_agent(self.agent_id, registration_data)
-            await self.shared_state.update_agent_state(self.agent_id, 'initializing')
-            self.current_state = 'initializing'
+            await self.shared_state.update_agent_state(self.agent_id, 'starting')
+            self.current_state = 'starting'
             
             self.logger.info(f"Agent {self.agent_id} registered successfully")
             
@@ -174,38 +174,66 @@ class BaseAgent(ABC):
         - Business metrics calculation and reporting
         """
         self.logger.info(f"Agent {self.agent_id} entering main execution loop")
+        self.logger.info(f"Agent {self.agent_id} initial state - is_running: {self.is_running}, shutdown_requested: {self.shutdown_requested}")
+        
+        iteration_count = 0
         
         while self.is_running and not self.shutdown_requested:
             try:
+                iteration_count += 1
+                self.logger.debug(f"Agent {self.agent_id} main loop iteration {iteration_count} starting")
+                
                 loop_start_time = time.time()
                 
                 # Update comprehensive heartbeat
+                self.logger.debug(f"Agent {self.agent_id} updating heartbeat...")
                 await self.update_comprehensive_heartbeat()
                 
                 # Perform agent work
+                self.logger.debug(f"Agent {self.agent_id} executing work cycle...")
                 work_result = await self.execute_work_cycle()
+                self.logger.debug(f"Agent {self.agent_id} work cycle completed: {work_result.get('success', 'unknown')}")
                 
                 # Update performance metrics
+                self.logger.debug(f"Agent {self.agent_id} updating performance metrics...")
                 await self.update_performance_metrics(work_result, loop_start_time)
                 
                 # Update business metrics
                 if self.business_metrics_enabled:
+                    self.logger.debug(f"Agent {self.agent_id} updating business metrics...")
                     await self.update_business_metrics(work_result)
                     
                 # Check for optimization opportunities
+                self.logger.debug(f"Agent {self.agent_id} checking optimization opportunities...")
                 await self.check_optimization_opportunities()
                 
                 # Log performance periodically
                 await self.log_periodic_performance()
                 
                 # Wait for next cycle
+                self.logger.debug(f"Agent {self.agent_id} iteration {iteration_count} completed, sleeping for {self.work_interval}s")
                 await asyncio.sleep(self.work_interval)
                 
+                # Log state after sleep
+                self.logger.debug(f"Agent {self.agent_id} woke up - is_running: {self.is_running}, shutdown_requested: {self.shutdown_requested}")
+                
+            except asyncio.CancelledError:
+                self.logger.warning(f"Agent {self.agent_id} main loop cancelled")
+                break
             except Exception as e:
+                self.logger.error(f"Agent {self.agent_id} main loop error in iteration {iteration_count}: {e}")
                 await self.handle_execution_error(e)
                 
-        self.logger.info(f"Agent {self.agent_id} main loop stopped")
+        self.logger.warning(f"Agent {self.agent_id} main loop exiting after {iteration_count} iterations")
+        self.logger.warning(f"Agent {self.agent_id} exit conditions - is_running: {self.is_running}, shutdown_requested: {self.shutdown_requested}")
         
+        # Mark agent as inactive when exiting main loop
+        try:
+            await self.shared_state.update_agent_state(self.agent_id, 'inactive')
+            self.current_state = 'inactive'
+        except Exception as e:
+            self.logger.error(f"Failed to update agent state to inactive: {e}")
+            
     async def update_comprehensive_heartbeat(self) -> None:
         """Update heartbeat with comprehensive enterprise metrics"""
         try:
@@ -567,7 +595,7 @@ class BaseAgent(ABC):
     async def handle_startup_error(self, error: Exception) -> None:
         """Handle startup errors"""
         try:
-            await self.shared_state.update_agent_state(self.agent_id, 'failed')
+            await self.shared_state.update_agent_state(self.agent_id, 'error')
             await self.shared_state.log_system_event(
                 'agent_startup_failure',
                 {
@@ -761,13 +789,13 @@ class BaseAgent(ABC):
             self.is_running = False
             
             # Update state
-            await self.shared_state.update_agent_state(self.agent_id, 'shutting_down')
+            await self.shared_state.update_agent_state(self.agent_id, 'stopping')
             
             # Log final metrics
             await self.log_final_metrics()
             
             # Update state to stopped
-            await self.shared_state.update_agent_state(self.agent_id, 'stopped')
+            await self.shared_state.update_agent_state(self.agent_id, 'inactive')
             
             self.logger.info(f"Agent {self.agent_id} shutdown completed")
             

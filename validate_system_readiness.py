@@ -1,17 +1,55 @@
+#!/usr/bin/env python3
 """
-System Readiness Validator
+System Readiness Validation
 
-Quick validation script to verify system readiness for live testing.
-Performs essential checks to ensure all components are properly integrated.
+Comprehensive validation script to verify system readiness for deployment.
+Tests file structure, environment configuration, dependencies, database connectivity,
+and system component initialization.
 """
 
 import asyncio
-import logging
-import sys
-import os
-from pathlib import Path
-from datetime import datetime, timezone
 import json
+import logging
+import os
+import sys
+from datetime import datetime, timezone
+from pathlib import Path
+
+# Add project root to path
+project_root = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, project_root)
+
+# Unicode-safe printing for Windows console compatibility
+def safe_print(text):
+    """Print text with fallback for Windows console encoding issues"""
+    try:
+        print(text)
+    except UnicodeEncodeError:
+        # Fallback: replace ALL Unicode characters with ASCII equivalents
+        fallback_text = (text
+                        .replace('🚀', '[*]')
+                        .replace('✅', '[+]')
+                        .replace('❌', '[X]')
+                        .replace('⚠️', '[!]')
+                        .replace('💡', '[i]')
+                        .replace('🎉', '[*]')
+                        .replace('📊', '[=]')
+                        .replace('🗄️', '[D]')
+                        .replace('⚙️', '[*]')
+                        .replace('📁', '[F]')
+                        .replace('🔧', '[T]')
+                        .replace('🐍', '[P]')
+                        .replace('📄', '[R]')
+                        .replace('🤖', '[A]')
+                        .replace('🔍', '[S]')  # magnifying glass for search
+                        .replace('📋', '[L]')  # clipboard for list
+                        .replace('📝', '[N]'))  # memo for notes
+        try:
+            print(fallback_text)
+        except UnicodeEncodeError:
+            # Ultimate fallback: encode to ASCII and ignore errors
+            ascii_text = text.encode('ascii', 'ignore').decode('ascii')
+            print(ascii_text)
 
 def setup_logging():
     """Setup basic logging"""
@@ -23,7 +61,7 @@ def setup_logging():
 def check_file_structure():
     """Check that all required files are present"""
     
-    print("🔍 Checking file structure...")
+    safe_print("🔍 Checking file structure...")
     
     required_files = [
         # Core coordination files
@@ -72,22 +110,22 @@ def check_file_structure():
         else:
             missing_files.append(file_path)
             
-    print(f"  ✅ Present: {len(present_files)} files")
-    print(f"  ❌ Missing: {len(missing_files)} files")
+    safe_print(f"  ✅ Present: {len(present_files)} files")
+    safe_print(f"  ❌ Missing: {len(missing_files)} files")
     
     if missing_files:
-        print("  Missing files:")
+        safe_print("  Missing files:")
         for file in missing_files:
-            print(f"    - {file}")
+            safe_print(f"    - {file}")
         return False
     else:
-        print("  🎉 All required files present!")
+        safe_print("  🎉 All required files present!")
         return True
 
 def check_environment_variables():
     """Check essential environment variables"""
     
-    print("\n🔧 Checking environment configuration...")
+    safe_print("\n🔧 Checking environment configuration...")
     
     required_env_vars = [
         'POSTGRESQL_HOST',
@@ -118,23 +156,23 @@ def check_environment_variables():
         if value:
             present_vars[var] = value
             
-    print(f"  ✅ Present: {len(present_vars)} environment variables")
-    print(f"  ❌ Missing required: {len(missing_required)} variables")
+    safe_print(f"  ✅ Present: {len(present_vars)} environment variables")
+    safe_print(f"  ❌ Missing required: {len(missing_required)} variables")
     
     if missing_required:
-        print("  Missing required environment variables:")
+        safe_print("  Missing required environment variables:")
         for var in missing_required:
-            print(f"    - {var}")
-        print("  💡 Create a .env file or set these variables")
+            safe_print(f"    - {var}")
+        safe_print("  💡 Create a .env file or set these variables")
         return False
     else:
-        print("  🎉 All required environment variables present!")
+        safe_print("  🎉 All required environment variables present!")
         return True
 
 def check_python_imports():
     """Check that all Python modules can be imported"""
     
-    print("\n🐍 Checking Python imports...")
+    safe_print("\n🐍 Checking Python imports...")
     
     import_tests = [
         ("PostgreSQL Adapter", "background_agents.coordination.postgresql_adapter"),
@@ -158,22 +196,22 @@ def check_python_imports():
         except ImportError as e:
             import_failures.append((name, str(e)))
             
-    print(f"  ✅ Successful imports: {len(import_successes)}")
-    print(f"  ❌ Failed imports: {len(import_failures)}")
+    safe_print(f"  ✅ Successful imports: {len(import_successes)}")
+    safe_print(f"  ❌ Failed imports: {len(import_failures)}")
     
     if import_failures:
-        print("  Import failures:")
+        safe_print("  Import failures:")
         for name, error in import_failures:
-            print(f"    - {name}: {error}")
+            safe_print(f"    - {name}: {error}")
         return False
     else:
-        print("  🎉 All imports successful!")
+        safe_print("  🎉 All imports successful!")
         return True
 
 async def check_database_connection():
     """Check database connectivity"""
     
-    print("\n🗄️ Checking database connectivity...")
+    safe_print("\n🗄️ Checking database connectivity...")
     
     try:
         from background_agents.coordination.postgresql_adapter import PostgreSQLAdapter, ConnectionConfig
@@ -195,21 +233,21 @@ async def check_database_connection():
         await adapter.close()
         
         if health_check.get('status') == 'healthy':
-            print(f"  ✅ Database connection successful")
-            print(f"  📊 Response time: {health_check.get('response_time_seconds', 0):.3f}s")
+            safe_print(f"  ✅ Database connection successful")
+            safe_print(f"  📊 Response time: {health_check.get('response_time_seconds', 0):.3f}s")
             return True
         else:
-            print(f"  ❌ Database unhealthy: {health_check}")
+            safe_print(f"  ❌ Database unhealthy: {health_check}")
             return False
             
     except Exception as e:
-        print(f"  ❌ Database connection failed: {e}")
+        safe_print(f"  ❌ Database connection failed: {e}")
         return False
 
 async def check_system_components():
     """Check that system components can be initialized"""
     
-    print("\n⚙️ Checking system components...")
+    safe_print("\n⚙️ Checking system components...")
     
     try:
         from background_agents.coordination.postgresql_adapter import PostgreSQLAdapter, ConnectionConfig
@@ -243,11 +281,11 @@ async def check_system_components():
         await shared_state.close()
         await adapter.close()
         
-        print("  ✅ System components working correctly")
+        safe_print("  ✅ System components working correctly")
         return True
         
     except Exception as e:
-        print(f"  ❌ System component check failed: {e}")
+        safe_print(f"  ❌ System component check failed: {e}")
         return False
 
 def generate_readiness_report(checks_results):
@@ -274,10 +312,10 @@ async def main():
     
     setup_logging()
     
-    print("🚀 System Readiness Validation")
-    print("=" * 40)
-    print(f"Timestamp: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}")
-    print()
+    safe_print("🚀 System Readiness Validation")
+    safe_print("=" * 40)
+    safe_print(f"Timestamp: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}")
+    safe_print("")
     
     # Run all checks
     checks_results = {}
@@ -296,29 +334,29 @@ async def main():
         checks_results['database_connectivity'] = await check_database_connection()
     else:
         checks_results['database_connectivity'] = False
-        print("\n🗄️ Skipping database check due to previous failures")
+        safe_print("\n🗄️ Skipping database check due to previous failures")
         
     # System components check (only if database check passes)
     if checks_results.get('database_connectivity'):
         checks_results['system_components'] = await check_system_components()
     else:
         checks_results['system_components'] = False
-        print("\n⚙️ Skipping system components check due to database issues")
+        safe_print("\n⚙️ Skipping system components check due to database issues")
         
     # Generate report
     report = generate_readiness_report(checks_results)
     
     # Display results
-    print("\n📊 READINESS SUMMARY")
-    print("=" * 30)
+    safe_print("\n📊 READINESS SUMMARY")
+    safe_print("=" * 30)
     
     status_emoji = "✅" if report['readiness_status'] == 'READY' else "❌"
-    print(f"{status_emoji} Status: {report['readiness_status']}")
-    print(f"📋 Checks: {report['passed_checks']}/{report['total_checks']} passed ({report['success_rate']:.1f}%)")
+    safe_print(f"{status_emoji} Status: {report['readiness_status']}")
+    safe_print(f"📋 Checks: {report['passed_checks']}/{report['total_checks']} passed ({report['success_rate']:.1f}%)")
     
     # Show individual check results
-    print("\n📝 CHECK RESULTS")
-    print("-" * 20)
+    safe_print("\n📝 CHECK RESULTS")
+    safe_print("-" * 20)
     
     check_names = {
         'file_structure': 'File Structure',
@@ -331,30 +369,30 @@ async def main():
     for check_key, result in checks_results.items():
         status = "✅" if result else "❌"
         name = check_names.get(check_key, check_key)
-        print(f"{status} {name}")
+        safe_print(f"{status} {name}")
         
     # Recommendations
-    print("\n💡 RECOMMENDATIONS")
-    print("-" * 20)
+    safe_print("\n💡 RECOMMENDATIONS")
+    safe_print("-" * 20)
     
     if report['readiness_status'] == 'READY':
-        print("  ✅ System is ready for live testing!")
-        print("  🚀 Run: python test_complete_system.py")
-        print("  📊 Start dashboard: streamlit run background_agents_dashboard.py")
-        print("  🤖 Launch agents: python launch_background_agents.py")
+        safe_print("  ✅ System is ready for live testing!")
+        safe_print("  🚀 Run: python test_complete_system.py")
+        safe_print("  📊 Start dashboard: streamlit run background_agents_dashboard.py")
+        safe_print("  🤖 Launch agents: python launch_background_agents.py")
     else:
-        print("  ⚠️ Address failed checks before proceeding")
+        safe_print("  ⚠️ Address failed checks before proceeding")
         
         if not checks_results.get('file_structure'):
-            print("  📁 Ensure all required files are present")
+            safe_print("  📁 Ensure all required files are present")
         if not checks_results.get('environment_config'):
-            print("  🔧 Configure environment variables")
+            safe_print("  🔧 Configure environment variables")
         if not checks_results.get('python_imports'):
-            print("  🐍 Check Python dependencies and imports")
+            safe_print("  🐍 Check Python dependencies and imports")
         if not checks_results.get('database_connectivity'):
-            print("  🗄️ Verify PostgreSQL database setup")
+            safe_print("  🗄️ Verify PostgreSQL database setup")
         if not checks_results.get('system_components'):
-            print("  ⚙️ Check system component initialization")
+            safe_print("  ⚙️ Check system component initialization")
             
     # Save report
     report_path = Path("logs/readiness_report.json")
@@ -363,8 +401,8 @@ async def main():
     with open(report_path, 'w') as f:
         json.dump(report, f, indent=2)
         
-    print(f"\n📄 Report saved: {report_path}")
-    print("\n🎉 Readiness validation complete!")
+    safe_print(f"\n📄 Report saved: {report_path}")
+    safe_print("\n🎉 Readiness validation complete!")
     
     return report['readiness_status'] == 'READY'
 

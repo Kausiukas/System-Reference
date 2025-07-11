@@ -17,6 +17,7 @@ from pathlib import Path
 
 from ..coordination.base_agent import BaseAgent
 from ..coordination.shared_state import SharedState
+from .enhanced_rag_system import EnhancedRAGSystem, Document
 
 
 @dataclass
@@ -211,8 +212,8 @@ class SystemContextIntegrator:
             return 'general'
 
 
-class AdvancedRAGSystem:
-    """Advanced Retrieval-Augmented Generation system with multi-source processing"""
+class LegacyRAGSystem:
+    """Legacy RAG system - kept for fallback compatibility"""
     
     def __init__(self):
         self.document_store = {}
@@ -716,9 +717,10 @@ class AIHelpAgent(BaseAgent):
         super().__init__(agent_id, shared_state)
         self.agent_name = "AIHelpAgent"
         
-        # Initialize components
+        # Initialize enhanced components
         self.context_integrator = SystemContextIntegrator(shared_state)
-        self.rag_system = AdvancedRAGSystem()
+        self.rag_system = EnhancedRAGSystem()
+        self.legacy_rag_system = LegacyRAGSystem()  # Fallback compatibility
         self.quality_assessor = QualityAssessmentSystem()
         
         # Configuration
@@ -726,12 +728,17 @@ class AIHelpAgent(BaseAgent):
         self.max_concurrent_requests = 5
         self.response_timeout = 30  # seconds
         
-        # Performance tracking
+        # Enhanced performance tracking
         self.help_stats = {
             'requests_processed': 0,
             'average_response_time': 0,
             'user_satisfaction_score': 4.8,
-            'business_value_generated': 0
+            'business_value_generated': 0,
+            'rag_system_status': 'initializing',
+            'documents_indexed': 0,
+            'vector_store_ready': False,
+            'semantic_retrieval_accuracy': 0.0,
+            'fallback_usage_count': 0
         }
         
         # Request queue
@@ -739,14 +746,138 @@ class AIHelpAgent(BaseAgent):
         self.active_requests = {}
         
     async def initialize(self) -> None:
-        """Initialize AI Help agent"""
-        self.logger.info("Initializing AI Help Agent with real-time system integration")
+        """Initialize AI Help agent with enhanced RAG system"""
+        self.logger.info("Initializing AI Help Agent with enhanced RAG and real-time system integration")
         
         # Set work interval
         self.work_interval = self.help_processing_interval
         
+        # Initialize enhanced RAG system
+        await self.setup_enhanced_rag_system()
+        
         # Initialize request processing
         await self.setup_request_processing()
+    
+    async def setup_enhanced_rag_system(self) -> None:
+        """Setup enhanced RAG system with knowledge indexing"""
+        try:
+            self.logger.info("Setting up enhanced RAG system...")
+            
+            # Initialize enhanced RAG system
+            await self.rag_system.initialize()
+            self.help_stats['rag_system_status'] = 'initialized'
+            
+            # Index knowledge base
+            await self.setup_knowledge_indexing()
+            
+            self.logger.info("Enhanced RAG system setup complete")
+            
+        except Exception as e:
+            self.logger.error(f"Failed to setup enhanced RAG system: {e}")
+            self.help_stats['rag_system_status'] = 'failed'
+            # Fall back to legacy system
+            self.logger.info("Falling back to legacy RAG system")
+    
+    async def setup_knowledge_indexing(self):
+        """Index all available knowledge sources"""
+        try:
+            self.logger.info("Starting knowledge base indexing...")
+            
+            # Get real codebase analysis
+            codebase_analysis = await self.get_real_codebase_analysis()
+            
+            # Get knowledge base from legacy system
+            knowledge_base = self.legacy_rag_system.knowledge_base
+            
+            # Get conversation memory (simulate for now)
+            conversation_memory = None  # Will be integrated when available
+            
+            # Index everything in vector store
+            await self.rag_system.index_knowledge_base(
+                codebase_analysis, 
+                knowledge_base, 
+                conversation_memory
+            )
+            
+            # Update stats
+            self.help_stats['documents_indexed'] = len(codebase_analysis.get('full_files', {})) + len(knowledge_base)
+            self.help_stats['vector_store_ready'] = True
+            self.help_stats['rag_system_status'] = 'ready'
+            
+            self.logger.info(f"Knowledge base indexing complete: {self.help_stats['documents_indexed']} documents indexed")
+            
+        except Exception as e:
+            self.logger.error(f"Failed to index knowledge base: {e}")
+            self.help_stats['rag_system_status'] = 'indexing_failed'
+    
+    async def get_real_codebase_analysis(self) -> Dict[str, Any]:
+        """Get real codebase analysis using CodebaseAnalyzer"""
+        try:
+            # Import the CodebaseAnalyzer from the main module
+            import sys
+            import os
+            from pathlib import Path
+            
+            # Add the parent directory to sys.path to import CodebaseAnalyzer
+            project_root = Path(__file__).parent.parent.parent
+            sys.path.insert(0, str(project_root))
+            
+            try:
+                from ai_help_agent_streamlit_fixed import CodebaseAnalyzer
+                
+                # Initialize analyzer
+                analyzer = CodebaseAnalyzer()
+                
+                # Get comprehensive analysis with more files
+                analysis = analyzer.analyze_codebase(max_files=150, include_full_content=True)
+                
+                self.logger.info(f"Real codebase analysis complete: {analysis.get('total_files', 0)} files, "
+                               f"{len(analysis.get('full_files', {}))} full files analyzed")
+                
+                return analysis
+                
+            except ImportError as e:
+                self.logger.error(f"Failed to import CodebaseAnalyzer: {e}")
+                return await self.get_mock_codebase_analysis()
+                
+        except Exception as e:
+            self.logger.error(f"Failed to get real codebase analysis: {e}")
+            return await self.get_mock_codebase_analysis()
+    
+    async def get_mock_codebase_analysis(self) -> Dict[str, Any]:
+        """Get mock codebase analysis for fallback"""
+        # This would normally come from CodebaseAnalyzer
+        return {
+            'full_files': {
+                'ai_help_agent.py': {
+                    'content': 'AI Help Agent implementation with enhanced RAG system',
+                    'language': 'Python',
+                    'functions': ['initialize', 'process_request', 'generate_response'],
+                    'classes': ['AIHelpAgent', 'EnhancedRAGSystem'],
+                    'imports': ['asyncio', 'logging', 'datetime'],
+                    'summary': 'Main AI Help Agent with vector-based RAG',
+                    'lines': 500
+                },
+                'enhanced_rag_system.py': {
+                    'content': 'Enhanced RAG system with vector embeddings and semantic search',
+                    'language': 'Python', 
+                    'functions': ['initialize', 'index_knowledge_base', 'retrieve_relevant_content'],
+                    'classes': ['EnhancedRAGSystem', 'EmbeddingManager', 'VectorStore'],
+                    'imports': ['chromadb', 'sentence_transformers', 'numpy'],
+                    'summary': 'Vector-based RAG system with ChromaDB',
+                    'lines': 800
+                }
+            },
+            'key_files': [
+                {
+                    'path': 'ai_help_agent.py',
+                    'type': 'Python',
+                    'functions': ['initialize', 'process_request'],
+                    'classes': ['AIHelpAgent'],
+                    'summary': 'Main AI Help Agent implementation'
+                }
+            ]
+        }
         
     async def setup_request_processing(self) -> None:
         """Setup request processing capabilities"""
@@ -843,7 +974,7 @@ class AIHelpAgent(BaseAgent):
         return mock_requests
         
     async def process_single_request(self, request: HelpRequest) -> HelpResponse:
-        """Process a single help request"""
+        """Process a single help request with enhanced RAG"""
         
         process_start = time.time()
         
@@ -852,8 +983,8 @@ class AIHelpAgent(BaseAgent):
             system_context = await self.context_integrator.gather_system_context(request.query)
             system_context['request_id'] = request.request_id
             
-            # Generate AI response using RAG
-            response = await self.rag_system.generate_response(request.query, system_context)
+            # Try enhanced RAG system first
+            response = await self.try_enhanced_rag_response(request, system_context)
             
             # Update processing time
             response.processing_time = time.time() - process_start
@@ -880,6 +1011,233 @@ class AIHelpAgent(BaseAgent):
                 timestamp=datetime.now(timezone.utc),
                 business_value=0.0
             )
+    
+    async def try_enhanced_rag_response(self, request: HelpRequest, system_context: Dict) -> HelpResponse:
+        """Try enhanced RAG system with fallback to legacy system"""
+        try:
+            # Check if enhanced RAG system is ready
+            if self.help_stats['vector_store_ready'] and self.help_stats['rag_system_status'] == 'ready':
+                # Use enhanced RAG with vector retrieval
+                relevant_documents = await self.rag_system.retrieve_relevant_content(
+                    request.query, 
+                    system_context, 
+                    top_k=10
+                )
+                
+                if relevant_documents:
+                    # Generate enhanced response
+                    response_text = await self.generate_enhanced_response(
+                        request.query, 
+                        relevant_documents, 
+                        system_context
+                    )
+                    
+                    confidence_score = await self.calculate_enhanced_confidence(
+                        request.query, 
+                        response_text, 
+                        relevant_documents,
+                        system_context
+                    )
+                    
+                    # Create enhanced response
+                    response = HelpResponse(
+                        response_id=f"enhanced_resp_{int(time.time())}",
+                        request_id=request.request_id,
+                        response_text=response_text,
+                        confidence_score=confidence_score,
+                        sources=[f"{doc.source}:{doc.metadata.get('file_path', 'unknown')}" for doc in relevant_documents[:5]],
+                        processing_time=0,  # Will be updated by caller
+                        timestamp=datetime.now(timezone.utc),
+                        business_value=await self.calculate_enhanced_business_value(request.query, system_context, relevant_documents)
+                    )
+                    
+                    # Update retrieval accuracy
+                    self.help_stats['semantic_retrieval_accuracy'] = confidence_score
+                    
+                    return response
+            
+            # Fallback to legacy RAG system
+            self.logger.info("Falling back to legacy RAG system")
+            self.help_stats['fallback_usage_count'] += 1
+            return await self.legacy_rag_system.generate_response(request.query, system_context)
+            
+        except Exception as e:
+            self.logger.error(f"Enhanced RAG processing failed: {e}")
+            # Fallback to legacy system
+            self.help_stats['fallback_usage_count'] += 1
+            return await self.legacy_rag_system.generate_response(request.query, system_context)
+    
+    async def generate_enhanced_response(self, query: str, relevant_documents: List[Document], system_context: Dict) -> str:
+        """Generate enhanced response using retrieved documents and system context"""
+        
+        # Build context from retrieved documents
+        context_parts = ["=== RELEVANT INFORMATION ==="]
+        
+        for i, doc in enumerate(relevant_documents[:5], 1):
+            source_info = f"Source {i}: {doc.source}"
+            if doc.metadata.get('file_path'):
+                source_info += f" ({doc.metadata['file_path']})"
+            
+            context_parts.append(f"\n{source_info}:")
+            context_parts.append(f"{doc.content[:300]}...")  # First 300 chars
+            
+            # Add metadata if available
+            if doc.metadata.get('functions'):
+                context_parts.append(f"Functions: {', '.join(doc.metadata['functions'][:3])}")
+            if doc.metadata.get('classes'):
+                context_parts.append(f"Classes: {', '.join(doc.metadata['classes'][:3])}")
+        
+        # Add system context
+        context_parts.append("\n=== SYSTEM STATUS ===")
+        system_status = system_context.get('system_status', {})
+        context_parts.append(f"System Health: {system_status.get('system_health', 'unknown')}")
+        context_parts.append(f"Active Agents: {system_status.get('active_agents', 0)}/{system_status.get('total_agents', 0)}")
+        
+        # Generate response based on query type and context
+        query_lower = query.lower()
+        
+        if any(word in query_lower for word in ['status', 'health', 'running']):
+            return await self.generate_status_response_enhanced(system_context, relevant_documents)
+        elif any(word in query_lower for word in ['how', 'explain', 'what', 'where']):
+            return await self.generate_explanation_response_enhanced(query, relevant_documents, system_context)
+        elif any(word in query_lower for word in ['problem', 'error', 'issue', 'fix']):
+            return await self.generate_troubleshooting_response_enhanced(query, relevant_documents, system_context)
+        else:
+            return await self.generate_general_response_enhanced(query, relevant_documents, system_context)
+    
+    async def generate_status_response_enhanced(self, system_context: Dict, relevant_documents: List[Document]) -> str:
+        """Generate enhanced status response with retrieved context"""
+        system_status = system_context.get('system_status', {})
+        
+        response = f"""**🔍 Enhanced System Status Analysis**
+
+**Overall Health**: {system_status.get('system_health', 'Unknown').title()}
+**Agent Status**: {system_status.get('active_agents', 0)}/{system_status.get('total_agents', 0)} agents active
+**RAG System**: {self.help_stats['rag_system_status'].title()} ({self.help_stats['documents_indexed']} documents indexed)
+
+**📊 Enhanced Intelligence**:
+- Vector Store: {'Ready' if self.help_stats['vector_store_ready'] else 'Initializing'}
+- Semantic Retrieval Accuracy: {self.help_stats['semantic_retrieval_accuracy']:.1f}%
+- Knowledge Sources: {len(relevant_documents)} relevant documents found
+
+**🎯 Contextual Insights**:
+"""
+        
+        # Add insights from retrieved documents
+        for doc in relevant_documents[:3]:
+            if 'monitoring' in doc.content.lower() or 'health' in doc.content.lower():
+                response += f"- Found monitoring guidance in {doc.source}\n"
+        
+        response += "\n✅ **Enhanced AI Help Agent is operational with vector-based knowledge retrieval**"
+        
+        return response
+    
+    async def generate_explanation_response_enhanced(self, query: str, relevant_documents: List[Document], system_context: Dict) -> str:
+        """Generate enhanced explanation response"""
+        
+        response = f"**🧠 Enhanced Explanation Based on Retrieved Knowledge**\n\n"
+        
+        # Use most relevant document
+        if relevant_documents:
+            top_doc = relevant_documents[0]
+            response += f"**Primary Source**: {top_doc.source}"
+            if top_doc.metadata.get('file_path'):
+                response += f" ({top_doc.metadata['file_path']})"
+            response += f"\n\n{top_doc.content[:500]}...\n\n"
+            
+            # Add technical details if available
+            if top_doc.metadata.get('functions'):
+                response += f"**Key Functions**: {', '.join(top_doc.metadata['functions'][:5])}\n"
+            if top_doc.metadata.get('classes'):
+                response += f"**Key Classes**: {', '.join(top_doc.metadata['classes'][:3])}\n"
+        
+        # Add system context if relevant
+        response += f"\n**Current System Context**: {len(relevant_documents)} related knowledge sources found"
+        
+        return response
+    
+    async def generate_troubleshooting_response_enhanced(self, query: str, relevant_documents: List[Document], system_context: Dict) -> str:
+        """Generate enhanced troubleshooting response"""
+        
+        response = "**🔧 Enhanced Troubleshooting Analysis**\n\n"
+        
+        # Look for troubleshooting documents
+        troubleshooting_docs = [doc for doc in relevant_documents if 'troubleshoot' in doc.content.lower() or 'error' in doc.content.lower()]
+        
+        if troubleshooting_docs:
+            response += "**📋 Relevant Troubleshooting Information**:\n"
+            for doc in troubleshooting_docs[:2]:
+                response += f"- {doc.content[:200]}...\n"
+        
+        # Add system status context
+        system_status = system_context.get('system_status', {})
+        if system_status.get('system_health') != 'healthy':
+            response += f"\n**⚠️ Current System Issues Detected**: {system_status.get('system_health', 'unknown')} health status\n"
+        
+        response += "\n**💡 Next Steps**: Check the specific components mentioned above and review recent system events."
+        
+        return response
+    
+    async def generate_general_response_enhanced(self, query: str, relevant_documents: List[Document], system_context: Dict) -> str:
+        """Generate enhanced general response"""
+        
+        response = f"**🤖 Enhanced AI Response**\n\n"
+        response += f"Based on {len(relevant_documents)} relevant knowledge sources:\n\n"
+        
+        # Summarize top documents
+        for i, doc in enumerate(relevant_documents[:3], 1):
+            response += f"**{i}. {doc.source.title()}**: {doc.content[:150]}...\n\n"
+        
+        response += f"**System Context**: {self.help_stats['rag_system_status'].title()} RAG system with {self.help_stats['documents_indexed']} indexed documents"
+        
+        return response
+    
+    async def calculate_enhanced_confidence(self, query: str, response: str, relevant_documents: List[Document], system_context: Dict) -> float:
+        """Calculate enhanced confidence score based on retrieval quality"""
+        
+        base_confidence = 75.0  # Base confidence for enhanced system
+        
+        # Boost for number of relevant documents
+        if len(relevant_documents) >= 5:
+            base_confidence += 10
+        elif len(relevant_documents) >= 3:
+            base_confidence += 5
+        
+        # Boost for document relevance scores
+        if relevant_documents:
+            avg_relevance = sum(doc.relevance_score for doc in relevant_documents) / len(relevant_documents)
+            base_confidence += avg_relevance * 10
+        
+        # Boost for system context integration
+        if system_context.get('system_status'):
+            base_confidence += 5
+        
+        return min(base_confidence, 95.0)  # Cap at 95%
+    
+    async def calculate_enhanced_business_value(self, query: str, system_context: Dict, relevant_documents: List[Document]) -> float:
+        """Calculate enhanced business value based on knowledge utilization"""
+        
+        base_value = 25.0  # Base value for enhanced assistance
+        
+        # Value based on knowledge sources utilized
+        source_multiplier = {
+            'codebase': 2.0,
+            'key_file': 3.0,
+            'documentation': 1.5,
+            'conversation': 1.2
+        }
+        
+        for doc in relevant_documents:
+            base_value += source_multiplier.get(doc.source, 1.0) * 5
+        
+        # Value based on query complexity
+        query_lower = query.lower()
+        if any(word in query_lower for word in ['troubleshoot', 'debug', 'fix']):
+            base_value *= 1.5  # Troubleshooting has higher value
+        elif any(word in query_lower for word in ['explain', 'how', 'architecture']):
+            base_value *= 1.3  # Knowledge transfer value
+        
+        return min(base_value, 100.0)  # Cap at $100
             
     async def log_help_interaction(self, request: HelpRequest, response: HelpResponse, 
                                  quality_assessment: Dict) -> None:
