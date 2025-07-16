@@ -662,3 +662,87 @@ enterprise:
 - **ROI Achievement**: 300%+ annual return
 
 This comprehensive PostgreSQL-based agent system delivers enterprise-grade automation, monitoring, and AI-powered assistance with quantifiable business value and strategic competitive advantages.
+
+## 📋 Current Agent Registry (Updated 2025-07-16)
+
+### Active Agents (9)
+
+| Agent ID | Type | Description | Core File |
+|----------|------|-------------|-----------|
+| `agent_coordinator` | Coordination | Orchestrates lifecycle & shared-state updates | `background_agents/coordination/agent_coordinator.py` |
+| `heartbeat_health_agent` | Monitoring | Calculates health scores & emits heartbeats | `background_agents/monitoring/heartbeat_health_agent.py` |
+| `performance_monitor` | Monitoring | Collects performance metrics & detects anomalies | `background_agents/monitoring/performance_monitor.py` |
+| `langsmith_bridge` | Integration | Streams LLM conversations to LangSmith | `background_agents/monitoring/langsmith_bridge.py` |
+| `ai_help_agent` | AI / RAG | Enhanced RAG assistant with code analysis | `background_agents/ai_help/ai_help_agent.py` |
+| `diagnostic_test_agent` | Monitoring | Test heartbeat generator used for load validation | `tests/diagnostic_test_agent.py` |
+| `test_agent_1` | Monitoring | Synthetic load / demo agent #1 | `tests/test_agents/test_agent_1.py` |
+| `test_agent_2` | Monitoring | Synthetic load / demo agent #2 | `tests/test_agents/test_agent_2.py` |
+| `test_launcher_env_agent` | Monitoring | Launcher sanity-check agent | `tests/test_launcher_env_agent.py` |
+
+### Future Agent Slots (8)
+Inactive placeholders ready for on-demand activation.
+
+| Slot ID | Planned Purpose |
+|---------|-----------------|
+| `slot_business_intelligence` | Advanced business analytics & reporting |
+| `slot_security_monitor` | Security monitoring & compliance audits |
+| `slot_data_processor` | Bulk data processing & ETL pipelines |
+| `slot_ml_analytics` | Machine-learning analytics & predictions |
+| `slot_integration_hub` | External integration / API gateway |
+| `slot_custom_agent` | Custom business logic / specialized tasks |
+| `self_healing_agent` | Automated recovery & patching (inactive core) |
+| `slot_placeholder_n` | Reserved for future expansion |
+
+### 🌐 System-Level Overview (Active + Slots)
+```mermaid
+graph LR
+    subgraph "Active Agents"
+        AC[AgentCoordinator]
+        HH[HeartbeatHealthAgent]
+        PM[PerformanceMonitor]
+        LS[LangSmithBridge]
+        AH[AIHelpAgent]
+        DT[DiagnosticTestAgent]
+        TA1[TestAgent1]
+        TA2[TestAgent2]
+        TL[TestLauncherEnvAgent]
+    end
+    subgraph "Future Slots"
+        BI[BusinessIntelligenceSlot]
+        SM[SecurityMonitorSlot]
+        DP[DataProcessorSlot]
+        ML[MLAnalyticsSlot]
+        IH[IntegrationHubSlot]
+        CS[CustomAgentSlot]
+        SH[SelfHealingAgent]
+        SP[PlaceholderSlotN]
+    end
+
+    AC --> HH
+    AC --> PM
+    AC --> LS
+    AC --> AH
+    AC --> DT
+    AC --> TA1
+    AC --> TA2
+    AC --> TL
+
+    %% Slots are unattached until activated
+```
+
+### 🔗 Detailed File Map
+```mermaid
+flowchart TD
+    subgraph "Agent Code Map"
+        AgentCoordinator -->|imports| SharedState
+        AgentCoordinator --> PostgreSQLAdapter
+        HeartbeatHealthAgent --> BaseAgent
+        PerformanceMonitor --> BaseAgent
+        LangSmithBridge --> BaseAgent
+        AIHelpAgent --> EnhancedRAGSystem
+        EnhancedRAGSystem --> ChromaDB
+        EnhancedRAGSystem --> SentenceTransformers
+    end
+```
+
+> **Note:** Slot agents are inserted into the `agents` table with `state='inactive'` and `slot_status='available'`. Activate a slot by updating its state to `'active'` and injecting the concrete implementation.
