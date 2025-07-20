@@ -1,0 +1,10 @@
+apiVersion: v1
+data:
+  AGENT_COORDINATION_SECRET: ai-help-agent-secret-2025
+  CHROMA_DB_PATH: /app/vectorstore_db
+  LOG_LEVEL: INFO
+  MONITORING_ENABLED: 'true'
+kind: ConfigMap
+metadata:
+  name: ai-help-agent-config
+  namespace: ai-help-agent

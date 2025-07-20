@@ -1,0 +1,27 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: 'false'
+  name: ai-help-agent-ingress
+  namespace: ai-help-agent
+spec:
+  rules:
+  - host: ai-help-agent.local
+    http:
+      paths:
+      - backend:
+          service:
+            name: streamlit-ui
+            port:
+              number: 8501
+        path: /
+        pathType: Prefix
+      - backend:
+          service:
+            name: enhanced-rag-service
+            port:
+              number: 8001
+        path: /api/rag
+        pathType: Prefix

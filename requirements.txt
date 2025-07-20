@@ -1,0 +1,57 @@
+# System-Reference: Streamlit Cloud Dependencies
+# Core Streamlit and web framework
+streamlit>=1.28.0
+streamlit-option-menu>=0.3.6
+
+# AI and Machine Learning
+openai>=1.0.0
+sentence-transformers>=2.2.0
+langchain>=0.1.0
+langchain-openai>=0.0.5
+transformers>=4.35.0
+torch>=2.0.0
+numpy>=1.24.0
+pandas>=2.0.0
+
+# Vector Database and RAG
+chromadb>=0.4.0
+chromadb-client>=0.4.0
+
+# GitHub API and repository processing
+PyGithub>=1.59.0
+gitpython>=3.1.0
+requests>=2.31.0
+
+# Database and caching
+psycopg2-binary>=2.9.0
+redis>=4.5.0
+sqlite3
+
+# Configuration and environment
+python-dotenv>=1.0.0
+pyyaml>=6.0
+toml>=0.10.0
+
+# Data processing and analysis
+ast>=0.0.2
+pathlib2>=2.3.0
+shutil
+tempfile
+uuid
+
+# Utilities and helpers
+typing-extensions>=4.8.0
+dataclasses-json>=0.6.0
+pydantic>=2.0.0
+
+# Monitoring and logging
+logging
+time
+datetime
+json
+
+# Development and testing (optional for production)
+pytest>=7.4.0
+pytest-cov>=4.1.0
+black>=23.0.0
+flake8>=6.0.0
