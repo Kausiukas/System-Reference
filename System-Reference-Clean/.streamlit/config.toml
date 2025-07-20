@@ -1,78 +1,32 @@
-[theme]
-# Primary color for the application
-primaryColor = "#FF6B6B"
-
-# Background colors
-backgroundColor = "#FFFFFF"
-secondaryBackgroundColor = "#F0F2F6"
-
-# Text colors
-textColor = "#262730"
-
-# Font settings
-font = "sans serif"
+[global]
+developmentMode = false
 
 [server]
-# Maximum upload size in MB
-maxUploadSize = 200
-
-# Enable/disable CORS
-enableCORS = false
-
-# Enable XSS protection
-enableXsrfProtection = true
-
-# Run in headless mode for production
 headless = true
-
-# Server port
+enableCORS = false
+enableXsrfProtection = false
 port = 8501
 
-# Server address
-address = "localhost"
-
 [browser]
-# Disable usage statistics gathering
 gatherUsageStats = false
 
-# Server address for browser
-serverAddress = "localhost"
-
-# Server port for browser
-serverPort = 8501
+[theme]
+primaryColor = "#FF6B6B"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F0F2F6"
+textColor = "#262730"
+font = "sans serif"
 
 [client]
-# Show error details (set to false in production)
 showErrorDetails = false
-
-# Show tooltips
-showTooltips = true
-
-# Cache data by default
-cacheData = true
+caching = true
+displayEnabled = true
 
 [runner]
-# Magic commands
 magicEnabled = true
-
-# Install Tracer
 installTracer = false
-
-# Fix Matplotlib
 fixMatplotlib = true
 
 [logger]
-# Log level
 level = "info"
-
-# Message format
-messageFormat = "%(asctime)s %(message)s"
-
-# Enable file logging
-enableFileLogging = false
-
-[deprecation]
-# Show deprecation warnings
-showPyplotGlobalUse = false
-showfileUploaderEncoding = false
-showImageFormatWarning = false 
+messageFormat = "%(asctime)s %(message)s" 
