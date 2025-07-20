@@ -42,7 +42,7 @@ git clone https://github.com/your-username/System-Reference.git
 cd System-Reference
 
 # Create clean branch for deployment
-git checkout -b cloud-deployment
+git checkout -b cloud
 ```
 
 ### **Step 3: Organize Core Files**

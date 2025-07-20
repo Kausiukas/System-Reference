@@ -1,0 +1,271 @@
+# Clean GitHub Auto Update Configuration for Cloud Deployment
+
+# Source directory containing the code to sync
+source_directory: "."
+
+# Target repository path (local clone of the target repository)
+target_repository_path: "../System-Reference-Clean"
+
+# GitHub repository URL
+repository_url: "https://github.com/Kausiukas/System-Reference.git"
+
+# GitHub personal access token (for API access)
+github_token: "${GITHUB_TOKEN}"
+
+# Working branch
+working_branch: "cloud"
+
+# File patterns to include in sync (ONLY essential cloud deployment files)
+include_patterns:
+  - "src/main.py"
+  - "src/components/ui_components.py"
+  - "src/components/repository_processor.py"
+  - "src/utils/config.py"
+  - "src/utils/session.py"
+  - "src/utils/cache.py"
+  - "src/utils/shared_state_manager.py"
+  - "requirements.txt"
+  - ".streamlit/config.toml"
+  - "cloud_deployment_plan.md"
+  - "cloud_system_map.md"
+  - "cloud_user_experience.md"
+  - "technical_implementation_plan.md"
+  - "docs/README.md"
+  - "docs/streamlit-cloud/deployment.md"
+  - "config/github_update_config.yaml"
+  - "config/github_update_config_clean.yaml"
+  - "config/shared_state_config.yaml"
+  - "scripts/github_auto_update.py"
+  - "scripts/github_auto_update_clean.py"
+  - "README.md"
+  - "CODEX_EXECUTION_PLAN.md"
+  - "CODEX_INTEGRATION_PLAN.md"
+  - "codex_analysis_task.md"
+  - "BRANCH_STRUCTURE_UPDATE.md"
+
+# File patterns to exclude from sync (exclude everything else)
+exclude_patterns:
+  - "**/*"  # Exclude everything by default
+  - "!src/main.py"
+  - "!src/components/ui_components.py"
+  - "!src/components/repository_processor.py"
+  - "!src/utils/config.py"
+  - "!src/utils/session.py"
+  - "!src/utils/cache.py"
+  - "!requirements.txt"
+  - "!.streamlit/config.toml"
+  - "!cloud_deployment_plan.md"
+  - "!cloud_system_map.md"
+  - "!cloud_user_experience.md"
+  - "!technical_implementation_plan.md"
+  - "!docs/README.md"
+  - "!docs/streamlit-cloud/deployment.md"
+  - "!config/github_update_config.yaml"
+  - "!config/github_update_config_clean.yaml"
+  - "!config/shared_state_config.yaml"
+  - "!scripts/github_auto_update.py"
+  - "!scripts/github_auto_update_clean.py"
+  - "!README.md"
+  - "!CODEX_EXECUTION_PLAN.md"
+  - "!CODEX_INTEGRATION_PLAN.md"
+  - "!codex_analysis_task.md"
+  - "!BRANCH_STRUCTURE_UPDATE.md"
+  - "**/__pycache__/**"
+  - "**/*.pyc"
+  - "**/*.pyo"
+  - "**/*.pyd"
+  - "**/.git/**"
+  - "**/node_modules/**"
+  - "**/venv/**"
+  - "**/.env"
+  - "**/.env.local"
+  - "**/.env.production"
+  - "**/logs/**"
+  - "**/temp/**"
+  - "**/tmp/**"
+  - "**/.DS_Store"
+  - "**/Thumbs.db"
+  - "**/*.log"
+  - "**/coverage/**"
+  - "**/.pytest_cache/**"
+  - "**/.mypy_cache/**"
+  - "**/vectorstore_db/**"
+  - "**/test_*.py"
+  - "**/benchmark_*.py"
+  - "**/fix_*.py"
+  - "**/final_*.py"
+  - "**/comprehensive_*.py"
+  - "**/structural_*.py"
+  - "**/standalone_*.py"
+  - "**/clean_*.py"
+  - "**/debug_*.py"
+  - "**/demo_*.py"
+  - "**/enhanced_*.py"
+  - "**/launch_*.py"
+  - "**/run_*.py"
+  - "**/memory_*.py"
+  - "**/stress_*.py"
+  - "**/narrative_*.py"
+  - "**/character_*.py"
+  - "**/pynarrative_*.py"
+  - "**/quality_*.py"
+  - "**/comprehensive_*.py"
+  - "**/improvement_*.py"
+  - "**/implement_*.py"
+  - "**/remove_*.py"
+  - "**/repository_upload_*.py"
+  - "**/streamlit_app.py"
+  - "**/advanced_graph_*.py"
+  - "**/ai_help_agent_*.py"
+  - "**/background_agents/**"
+  - "**/cloud_adapters/**"
+  - "**/cloud_utils/**"
+  - "**/cloud_deployment/**"
+  - "**/static/**"
+  - "**/submission_avalci_AE35/**"
+  - "**/temp/**"
+  - "**/test_data/**"
+  - "**/test_results/**"
+  - "**/vectorstore_analysis/**"
+  - "**/htmlcov/**"
+  - "**/k8s/**"
+  - "**/docker/**"
+  - "**/terraform/**"
+  - "**/monitoring/**"
+  - "**/logs/**"
+  - "**/backups/**"
+  - "**/node_modules/**"
+  - "**/venv/**"
+  - "**/.pytest_cache/**"
+  - "**/.mypy_cache/**"
+  - "**/__pycache__/**"
+  - "**/*.pyc"
+  - "**/*.pyo"
+  - "**/*.pyd"
+  - "**/*.log"
+  - "**/*.json"
+  - "**/*.pickle"
+  - "**/*.bin"
+  - "**/*.idx"
+  - "**/*.pack"
+  - "**/*.lock"
+  - "**/*.cache"
+  - "**/*.tmp"
+  - "**/*.temp"
+  - "**/*.bak"
+  - "**/*.backup"
+  - "**/*.old"
+  - "**/*.orig"
+  - "**/*.rej"
+  - "**/*.swp"
+  - "**/*.swo"
+  - "**/*~"
+  - "**/.#*"
+  - "**/#*#"
+  - "**/.#*#"
+  - "**/*.pid"
+  - "**/*.seed"
+  - "**/*.pid.lock"
+  - "**/.coverage"
+  - "**/.coverage.*"
+  - "**/coverage.xml"
+  - "**/*.cover"
+  - "**/.hypothesis"
+  - "**/.pytest_cache"
+  - "**/.mypy_cache"
+  - "**/.dmypy.json"
+  - "**/dmypy.json"
+  - "**/.pyre"
+  - "**/.pytype"
+  - "**/cython_debug"
+  - "**/.tox"
+  - "**/.nox"
+  - "**/.coverage"
+  - "**/.coverage.*"
+  - "**/coverage.xml"
+  - "**/*.cover"
+  - "**/.hypothesis"
+  - "**/.pytest_cache"
+  - "**/.mypy_cache"
+  - "**/.dmypy.json"
+  - "**/dmypy.json"
+  - "**/.pyre"
+  - "**/.pytype"
+  - "**/cython_debug"
+  - "**/.tox"
+  - "**/.nox"
+
+# Directories to create in target repository (minimal)
+directories:
+  - "src"
+  - "src/components"
+  - "src/utils"
+  - "docs"
+  - "docs/streamlit-cloud"
+  - "config"
+  - "scripts"
+  - ".streamlit"
+  - "codex"
+  - "codex/tasks"
+  - "codex/outputs"
+  - "codex/config"
+  - "codex/scripts"
+
+# Commit message templates
+commit_messages:
+  auto_update: "Cloud deployment: Clean repository update - {timestamp}"
+  feature: "feat: {description}"
+  fix: "fix: {description}"
+  docs: "docs: {description}"
+  refactor: "refactor: {description}"
+  test: "test: {description}"
+  chore: "chore: {description}"
+
+# Release configuration
+release:
+  auto_version: true
+  version_format: "YYYY.MM.DD"
+  prerelease: false
+  draft: false
+  generate_notes: true
+
+# Backup configuration
+backup:
+  enabled: true
+  backup_dir: "backups"
+  max_backups: 5
+  compress_backups: true
+
+# Logging configuration
+logging:
+  level: "INFO"
+  file: "github_auto_update_clean.log"
+  max_size: "10MB"
+  backup_count: 3
+
+# Security configuration
+security:
+  validate_files: true
+  check_file_permissions: true
+  scan_for_secrets: true
+  allowed_file_types:
+    - ".py"
+    - ".toml"
+    - ".md"
+    - ".txt"
+    - ".yaml"
+    - ".yml"
+
+# Performance configuration
+performance:
+  max_file_size: "5MB"
+  parallel_processing: true
+  max_workers: 2
+  timeout: 180  # seconds
+
+# Error handling
+error_handling:
+  max_retries: 3
+  retry_delay: 5  # seconds
+  continue_on_error: false
+  rollback_on_failure: true 
