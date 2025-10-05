@@ -1,0 +1,12 @@
+2025-10-05 07:34:46,548 - root - ERROR - Failed to start recovery agent: 'ProcessRecoveryAgent' object has no attribute 'workspace_path'
+2025-10-05 07:34:46,650 - root - ERROR - Failed to start recovery agent: 'ProcessRecoveryAgent' object has no attribute 'workspace_path'
+2025-10-05 07:34:50,621 - root - INFO - Process Recovery Agent initialized
+2025-10-05 07:34:50,621 - root - INFO - Starting Process Recovery Agent
+2025-10-05 07:34:50,622 - root - INFO - Process monitoring started
+2025-10-05 07:34:50,622 - root - WARNING - Shared state file not found
+2025-10-05 07:34:50,622 - root - WARNING - Shared state file missing
+2025-10-05 07:34:50,622 - root - INFO - Created minimal shared state
+2025-10-05 07:34:55,534 - root - INFO - Received signal 15, shutting down gracefully
+2025-10-05 07:35:00,534 - root - INFO - Process monitoring stopped
+2025-10-05 07:35:05,535 - root - INFO - Process monitoring stopped
+2025-10-05 07:35:05,536 - root - INFO - Process Recovery Agent stopped

@@ -1,0 +1,29 @@
+{
+  "last_update": "2025-10-05T07:35:08.445404",
+  "environments": [
+    "local"
+  ],
+  "repository_version": "1bc923f3",
+  "analysis_results": {
+    "manual_recovery": {
+      "timestamp": "2025-10-05T07:35:08.446621",
+      "environment": "local",
+      "repository_version": "1bc923f3",
+      "analysis_type": "manual_recovery",
+      "score": 100,
+      "metrics": {
+        "triggered_at": "2025-10-05T07:35:08.445344",
+        "reason": "test_recovery",
+        "status": "initiated"
+      },
+      "issues": [],
+      "recommendations": [],
+      "automated_fixes": []
+    }
+  },
+  "recommendations": [],
+  "priority_issues": [],
+  "automated_fixes": [],
+  "performance_metrics": {},
+  "security_alerts": []
+}
