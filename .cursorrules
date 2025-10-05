@@ -1,0 +1,82 @@
+# Cursor IDE Automated Recovery Rules
+# This file defines automated rules for process monitoring and recovery
+
+# Process Monitoring Rules
+RULE: process_timeout_recovery
+WHEN: process_timeout OR connection_lost OR process_stopped
+ACTION: 
+  - Check tasklog.md for latest progress
+  - Update tasklog.md with current status and error details
+  - Analyze shared_state.json for incomplete tasks
+  - Recommend next priority task based on analysis results
+  - Initiate implementation of recommended task
+  - Log recovery actions to recovery.log
+
+RULE: task_continuation
+WHEN: process_resumed OR new_session_started
+ACTION:
+  - Read tasklog.md to understand current state
+  - Check shared_state.json for pending tasks
+  - Continue from last successful checkpoint
+  - Update progress indicators
+  - Notify user of recovery status
+
+RULE: error_handling
+WHEN: any_error OR exception_occurred
+ACTION:
+  - Log error details to error.log
+  - Update tasklog.md with error information
+  - Attempt automatic error resolution
+  - If resolution fails, recommend manual intervention
+  - Continue with next available task
+
+# Task Management Rules
+RULE: task_prioritization
+WHEN: multiple_tasks_available
+ACTION:
+  - Analyze task dependencies
+  - Prioritize based on criticality and dependencies
+  - Update tasklog.md with priority order
+  - Execute highest priority task first
+
+RULE: progress_tracking
+WHEN: task_started OR task_completed OR task_failed
+ACTION:
+  - Update tasklog.md with timestamp and status
+  - Update shared_state.json with progress
+  - Calculate completion percentage
+  - Log to progress.log
+
+# Recovery Triggers
+TRIGGER: connection_lost
+  - Detect when Cursor connection is lost
+  - Save current state to recovery_state.json
+  - Set recovery flag in shared_state.json
+
+TRIGGER: process_timeout
+  - Monitor process execution time
+  - If timeout exceeded, trigger recovery
+  - Save partial results before recovery
+
+TRIGGER: memory_exhaustion
+  - Monitor memory usage
+  - If critical, save state and restart
+  - Clean up temporary files
+
+# Automated Actions
+AUTO_ACTION: update_tasklog
+  - Always update tasklog.md with latest status
+  - Include timestamp, task name, status, and next steps
+  - Maintain chronological order
+
+AUTO_ACTION: recommend_next_task
+  - Analyze completed tasks
+  - Identify next logical step
+  - Update tasklog.md with recommendation
+  - Provide implementation guidance
+
+AUTO_ACTION: cleanup_on_error
+  - Remove temporary files
+  - Reset partial states
+  - Log cleanup actions
+  - Prepare for fresh start

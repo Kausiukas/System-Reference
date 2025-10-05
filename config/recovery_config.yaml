@@ -1,0 +1,97 @@
+# Process Recovery Agent Configuration
+
+# Workspace Configuration
+workspace_root: "/workspace"
+tasklog_file: "tasklog.md"
+shared_state_file: "shared_state.json"
+recovery_state_file: "recovery_state.json"
+
+# Process Monitoring
+process_timeout: 300  # seconds (5 minutes)
+memory_threshold: 0.8  # 80% memory usage
+check_interval: 30  # seconds
+max_recovery_attempts: 3
+recovery_delay: 60  # seconds between recovery attempts
+
+# Task Priorities
+task_priorities:
+  critical:
+    - "setup"
+    - "initialization" 
+    - "deployment"
+  high:
+    - "analysis"
+    - "testing"
+    - "integration"
+  medium:
+    - "documentation"
+    - "optimization"
+  low:
+    - "cleanup"
+    - "maintenance"
+
+# Recovery Actions
+recovery_actions:
+  on_timeout:
+    - "save_state"
+    - "update_tasklog"
+    - "recommend_next_task"
+    - "initiate_recovery"
+  
+  on_connection_loss:
+    - "save_state"
+    - "mark_tasks_failed"
+    - "update_tasklog"
+    - "wait_for_reconnection"
+    - "attempt_recovery"
+  
+  on_memory_pressure:
+    - "cleanup_temp_files"
+    - "update_tasklog"
+    - "monitor_memory"
+    - "restart_if_needed"
+
+# Task Execution
+task_execution:
+  setup:
+    commands:
+      - "pip install -r requirements.txt"
+      - "python -c 'from src.utils.shared_state_manager import SharedStateManager; manager = SharedStateManager(); manager.update_state(\"setup\", 100, {\"status\": \"initialized\"})'"
+  
+  initialization:
+    commands:
+      - "python -c 'from src.utils.shared_state_manager import SharedStateManager; manager = SharedStateManager(); manager.update_state(\"initialization\", 100, {\"status\": \"ready\"})'"
+  
+  analysis:
+    commands:
+      - "python scripts/github_auto_update_clean.py"
+      - "python -c 'from src.utils.shared_state_manager import SharedStateManager; manager = SharedStateManager(); manager.update_state(\"analysis\", 100, {\"status\": \"completed\"})'"
+  
+  deployment:
+    commands:
+      - "kubectl apply -f k8s/"
+      - "python -c 'from src.utils.shared_state_manager import SharedStateManager; manager = SharedStateManager(); manager.update_state(\"deployment\", 100, {\"status\": \"deployed\"})'"
+
+# Logging Configuration
+logging:
+  level: "INFO"
+  file: "recovery_agent.log"
+  max_size: "10MB"
+  backup_count: 5
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
+# Health Checks
+health_checks:
+  workspace_access: true
+  shared_state_access: true
+  process_monitoring: true
+  memory_monitoring: true
+  connection_monitoring: true
+
+# Notifications
+notifications:
+  on_recovery: true
+  on_failure: true
+  on_timeout: true
+  on_connection_loss: true
+  log_file: "recovery_notifications.log"
